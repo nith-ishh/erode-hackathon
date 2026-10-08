@@ -1,33 +1,46 @@
-# 🚗 Project Overview & Work Split — Nithish
+# 🚑 Project Overview & Work Split — Nithish
 
 **Developer Name**: Nithish  
-**Role**: Full-Stack & Impact Dashboard Lead  
+**Role**: Simulation & Emergency Corridor Engineer (Traffic Sim & Green Wave Lead — Member 3)  
 **Project**: AI-Based Traffic Management and Adaptive Signal Control  
 **Repository**: [https://github.com/nith-ishh/erode-hackathon.git](https://github.com/nith-ishh/erode-hackathon.git)  
-**Git Branch**: `nithish`
+**Git Branch**: `nithish` *(Do NOT push to main branch)*
 
 ---
 
-## 📌 Nithish's Assigned Modules & Codebase Ownership
+## 🎯 Primary Responsibilities (Member 3)
 
-1. **Frontend Dashboard UI**:
-   * [`frontend/src/App.tsx`](file:///c:/Users/avine/Documents/erode%20hackathon/frontend/src/App.tsx) — Main layout, mode toggle, system status state.
-   * [`frontend/src/components/JunctionVisualizer.tsx`](file:///c:/Users/avine/Documents/erode%20hackathon/frontend/src/components/JunctionVisualizer.tsx) — Real-time 2D Canvas SUMO Digital Twin visualizer with animated vehicle movements.
-   * [`frontend/src/components/Header.tsx`](file:///c:/Users/avine/Documents/erode%20hackathon/frontend/src/components/Header.tsx) — Header bar with backend connection status badge & clock.
+1. **SUMO Digital Twin Network & Traffic Demand**:
+   * Manage SUMO 4-way junction compiled network (`junction.net.xml`) and route files ([`simulation/sumo/network/`](file:///c:/Users/avine/Documents/erode%20hackathon/simulation/sumo/network/)).
+   * Run dataset demand calibration scripts ([`scripts/process_dataset.py`](file:///c:/Users/avine/Documents/erode%20hackathon/scripts/process_dataset.py) & [`scripts/generate_demand.py`](file:///c:/Users/avine/Documents/erode%20hackathon/scripts/generate_demand.py)) for Indian traffic density profiles (Cars, 2-Wheelers, Buses, Trucks, Autos).
 
-2. **Traffic Metrics & Fixed-Time Comparison**:
-   * [`frontend/src/components/ImpactDashboard.tsx`](file:///c:/Users/avine/Documents/erode%20hackathon/frontend/src/components/ImpactDashboard.tsx) — Comparative analytics chart displaying **Adaptive AI Traffic** vs. **Fixed-Time Baseline Traffic**.
-   * [`counterfactual/comparison.py`](file:///c:/Users/avine/Documents/erode%20hackathon/counterfactual/comparison.py) — Telemetry comparison calculator for delay reduction, queue reduction, and emergency response time saved.
+2. **Live TraCI Telemetry Connection**:
+   * Telemetry loop and TraCI dynamic step simulation ([`simulation/traci_controller.py`](file:///c:/Users/avine/Documents/erode%20hackathon/simulation/traci_controller.py)).
+   * Real-time state extraction engine ([`simulation/state_extractor.py`](file:///c:/Users/avine/Documents/erode%20hackathon/simulation/state_extractor.py)).
 
-3. **Backend Telemetry & Database**:
-   * [`backend/app/main.py`](file:///c:/Users/avine/Documents/erode%20hackathon/backend/app/main.py) — FastAPI REST server & routing initialization.
-   * [`backend/app/websocket/handler.py`](file:///c:/Users/avine/Documents/erode%20hackathon/backend/app/websocket/handler.py) — 10Hz WebSockets server streaming telemetry to frontend.
-   * [`backend/app/database/db.py`](file:///c:/Users/avine/Documents/erode%20hackathon/backend/app/database/db.py) — SQLite database for audit log persistence.
+3. **Emergency Pre-emption & Multi-Junction Green Wave Corridor**:
+   * Ambulance detection & emergency green corridor verification ([`emergency/emergency_detector.py`](file:///c:/Users/avine/Documents/erode%20hackathon/emergency/emergency_detector.py)).
+   * Multi-junction ($J_1 \rightarrow J_2 \rightarrow J_3$) Green Wave coordinator ([`emergency/green_wave.py`](file:///c:/Users/avine/Documents/erode%20hackathon/emergency/green_wave.py)).
+   * Frontend Green Wave Control Panel ([`frontend/src/components/GreenWavePanel.tsx`](file:///c:/Users/avine/Documents/erode%20hackathon/frontend/src/components/GreenWavePanel.tsx)).
 
 ---
 
-## 🚀 Hackathon Pitch Responsibilities for Nithish
+## 💻 Codebase Files Owned by Nithish (Member 3)
 
-1. **Demonstrate 2D SUMO Digital Twin**: Open the dashboard during the pitch, showing live signal changes, vehicle queues, and real-time PCU traffic.
-2. **Present Side-by-Side Traffic Comparison**: Show judges the comparison panel between **Adaptive AI Traffic** and **Fixed-Time Baseline Traffic**.
-3. **Present Performance Gains**: Highlight 35.9% Delay Reduction, 37.7% Queue Reduction, and 38.9% Emergency Response Time Saved.
+| File Path | Description |
+| :--- | :--- |
+| [`emergency/emergency_detector.py`](file:///c:/Users/avine/Documents/erode%20hackathon/emergency/emergency_detector.py) | Emergency vehicle detection & pre-emption signal override |
+| [`emergency/green_wave.py`](file:///c:/Users/avine/Documents/erode%20hackathon/emergency/green_wave.py) | Multi-junction ($J_1 \rightarrow J_2 \rightarrow J_3$) offset calculation & Green Wave corridor |
+| [`simulation/traci_controller.py`](file:///c:/Users/avine/Documents/erode%20hackathon/simulation/traci_controller.py) | Live SUMO TraCI simulation controller & phase switcher |
+| [`simulation/state_extractor.py`](file:///c:/Users/avine/Documents/erode%20hackathon/simulation/state_extractor.py) | Real-time vehicle telemetry and queue PCU calculator |
+| [`scripts/generate_demand.py`](file:///c:/Users/avine/Documents/erode%20hackathon/scripts/generate_demand.py) | Dynamic traffic demand & peak/off-peak route scenario generator |
+| [`scripts/process_dataset.py`](file:///c:/Users/avine/Documents/erode%20hackathon/scripts/process_dataset.py) | Delhi traffic density dataset preprocessor |
+| [`frontend/src/components/GreenWavePanel.tsx`](file:///c:/Users/avine/Documents/erode%20hackathon/frontend/src/components/GreenWavePanel.tsx) | Live Green Wave Corridor UI & Emergency vehicle activation trigger |
+
+---
+
+## 🎤 Nithish's Demo Presentation Workflow (Pitch Step 4)
+
+1. **Trigger Emergency Corridor**: Click **`[ ACTIVATE AMBULANCE CORRIDOR ]`** in the Green Wave panel.
+2. **Show Priority Green Signal**: Demonstrate that the approaching ambulance is granted immediate green pre-emption at Junction $J_1$.
+3. **Show Multi-Junction Coordination**: Point out how signal offsets cascade dynamically down the corridor ($J_1 \rightarrow J_2 \rightarrow J_3$) to create a non-stop green wave for emergency vehicles without gridlocking surrounding traffic.

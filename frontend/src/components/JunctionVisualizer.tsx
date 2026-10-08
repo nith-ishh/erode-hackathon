@@ -535,8 +535,8 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             const laneX = isEmergency ? (isAmbulance ? 448 : 485) : (idx % 2 === 0 ? 460 : 485);
             let vehY: number;
             if (isNSGreen) {
-              // Ambulance drives FASTLY (2.2x speed), other vehicles move smoothly
-              const currentSpeed = isAmbulance ? flowSpeed * 2.2 : flowSpeed;
+              // Ambulance drives FASTLY (2.2x speed) ONLY when triggered (siren ON), otherwise same speed as all other vehicles
+              const currentSpeed = (isAmbulance && isEmergency) ? flowSpeed * 2.2 : flowSpeed;
               const startOffset = -30 + idx * 45;
               vehY = ((startOffset + simStep * currentSpeed) % 540) - 20;
             } else {

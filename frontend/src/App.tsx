@@ -6,7 +6,7 @@ import { SafetyShieldPanel } from './components/SafetyShieldPanel';
 import { ImpactDashboard } from './components/ImpactDashboard';
 import { GreenWavePanel } from './components/GreenWavePanel';
 import { DecisionAuditLog } from './components/DecisionAuditLog';
-import { Radio, Wifi } from 'lucide-react';
+import { Radio } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [scenario, setScenario] = useState<string>('normal');

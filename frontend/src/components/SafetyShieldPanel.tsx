@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, ShieldAlert, CheckCircle, XCircle, AlertCircle, Cpu } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
 interface SafetyShieldPanelProps {
   stateData: any;

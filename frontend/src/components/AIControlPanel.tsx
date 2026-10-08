@@ -1,5 +1,5 @@
 import React from 'react';
-import { Brain, MessageSquare, Scale, Users } from 'lucide-react';
+import { Brain, MessageSquare, Scale } from 'lucide-react';
 
 interface AIControlPanelProps {
   stateData: any;

@@ -67,10 +67,11 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
   // - auto: 0.8x (medium auto-rickshaw speed)
   // - bus: 0.65x (heavy passenger bus)
   // - truck: 0.5x (heavy cargo truck)
-  // - emergency (siren ON): 2.5x (priority emergency corridor pass, NEVER STOPS)
+  // - emergency (siren OFF): 1.0x (obeys standard traffic rules, normal car speed)
+  // - emergency (siren ON): 3.5x (FASTER THAN ALL VEHICLES, clear high-speed corridor pass)
   const getSpeedForVType = (vtype: string, sirenOn: boolean) => {
     if (vtype === 'emergency') {
-      return sirenOn ? flowSpeed * 2.5 : flowSpeed * 1.0;
+      return sirenOn ? flowSpeed * 3.5 : flowSpeed * 1.0;
     }
     switch (vtype) {
       case 'motorcycle':
@@ -139,7 +140,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
     switch (type) {
       case 'emergency':
         return (
-          <g transform={transform} key={key} style={{ transition: 'transform 0.05s linear' }}>
+          <g transform={transform} key={key} style={{ transition: 'transform 0.15s ease-out' }}>
             {/* Siren Pulsing Emergency Halo (Active ONLY when Siren is ON) */}
             {isEmergency && (
               <circle cx="0" cy="0" r="32" fill="rgba(239, 68, 68, 0.25)">
@@ -197,7 +198,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
         );
       case 'bus':
         return (
-          <g transform={transform} key={key} style={{ transition: 'transform 0.05s linear' }}>
+          <g transform={transform} key={key} style={{ transition: 'transform 0.15s ease-out' }}>
             <rect x="-13" y="-28" width="26" height="56" rx="3" fill="#991b1b" stroke="#f87171" strokeWidth="1.5" />
             <rect x="-10" y="-24" width="20" height="8" fill="#1e293b" rx="1" />
             <rect x="-10" y="-12" width="20" height="32" fill="#7f1d1d" rx="1" />
@@ -205,28 +206,28 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
         );
       case 'truck':
         return (
-          <g transform={transform} key={key} style={{ transition: 'transform 0.05s linear' }}>
+          <g transform={transform} key={key} style={{ transition: 'transform 0.15s ease-out' }}>
             <rect x="-13" y="-26" width="26" height="52" rx="2" fill="#166534" stroke="#4ade80" strokeWidth="1.5" />
             <rect x="-11" y="-24" width="22" height="14" fill="#047857" rx="2" />
           </g>
         );
       case 'motorcycle':
         return (
-          <g transform={transform} key={key} style={{ transition: 'transform 0.05s linear' }}>
+          <g transform={transform} key={key} style={{ transition: 'transform 0.15s ease-out' }}>
             <rect x="-4" y="-10" width="8" height="20" rx="2" fill="#854d0e" stroke="#fde047" strokeWidth="1" />
             <circle cx="0" cy="0" r="4" fill="#facc15" />
           </g>
         );
       case 'auto':
         return (
-          <g transform={transform} key={key} style={{ transition: 'transform 0.05s linear' }}>
+          <g transform={transform} key={key} style={{ transition: 'transform 0.15s ease-out' }}>
             <polygon points="0,-12 10,8 -10,8" fill="#c2410c" stroke="#fb923c" strokeWidth="1.5" />
             <rect x="-9" y="0" width="18" height="10" fill="#ea580c" rx="1" />
           </g>
         );
       default: // car
         return (
-          <g transform={transform} key={key} style={{ transition: 'transform 0.05s linear' }}>
+          <g transform={transform} key={key} style={{ transition: 'transform 0.15s ease-out' }}>
             <rect x="-11" y="-18" width="22" height="36" rx="5" fill="#0284c7" stroke="#38bdf8" strokeWidth="1.5" />
             <rect x="-8" y="-14" width="16" height="6" fill="#0f172a" rx="1" />
             <rect x="-8" y="8" width="16" height="4" fill="#0f172a" rx="1" />

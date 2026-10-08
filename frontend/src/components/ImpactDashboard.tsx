@@ -9,7 +9,6 @@ interface ImpactDashboardProps {
 export const ImpactDashboard: React.FC<ImpactDashboardProps> = ({ metricsData }) => {
   const [metrics, setMetrics] = useState<any>(null);
   const [isRunningExp, setIsRunningExp] = useState<boolean>(false);
-  const [expSteps, setExpSteps] = useState<number>(300);
   const [lastUpdated, setLastUpdated] = useState<string>('Just now');
 
   useEffect(() => {

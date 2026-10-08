@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Database, Search, RefreshCw, CheckCircle, AlertTriangle, Shield, Clock } from 'lucide-react';
+import { Database, Search, RefreshCw, CheckCircle, AlertTriangle, Shield } from 'lucide-react';
 
 export const DecisionAuditLog: React.FC = () => {
   const [decisions, setDecisions] = useState<any[]>([]);
@@ -136,7 +136,6 @@ export const DecisionAuditLog: React.FC = () => {
               </tr>
             ) : (
               filteredDecisions.map((d) => {
-                const isApproved = !d.fallback_status && d.safety_result?.[0] !== false;
                 const isEmergency = Boolean(d.emergency_status);
                 const isFallback = Boolean(d.fallback_status);
 

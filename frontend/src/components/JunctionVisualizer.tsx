@@ -579,20 +579,21 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
           {/* NORTH INBOUND VEHICLES (Heading South) */}
           {northVehicles.map((vtype, idx) => {
             // ALGORITHM: Give-Way Lane Shifting & Continuous Emergency Corridor Pass
-            const isAmbulance = vtype === 'emergency';
+            const isAmbulance = vtype === 'emergency' || vtype === 'ambulance';
             const laneX = isEmergency ? (isAmbulance ? 448 : 485) : (idx % 2 === 0 ? 460 : 485);
             let vehY: number;
 
             // Siren ON: Ambulance NEVER stops anywhere on the road, drives continuously!
             const movesContinuously = (isAmbulance && isEmergency) || isNSGreen;
+            const currentSpeed = getSpeedForVType(vtype, isEmergency);
 
             if (movesContinuously) {
-              const currentSpeed = getSpeedForVType(vtype, isEmergency);
-              const startOffset = -60 + idx * 75;
-              vehY = ((startOffset + animTime * currentSpeed) % 600) - 30;
+              const startOffset = isAmbulance ? -40 : (-40 + idx * 75);
+              vehY = ((startOffset + animTime * currentSpeed) % 580) - 30;
             } else {
-              // RED SIGNAL for standard vehicles: Queue up SAFELY behind Stopline Y=160
-              vehY = 130 - Math.floor(idx / 2) * 55;
+              // RED SIGNAL: Queue up SAFELY behind Stopline Y=160
+              // Ambulance (idx=0) queued right at Stopline Y=135 at the front of the road
+              vehY = 135 - idx * 45;
             }
             return renderVehicleSVG(vtype, laneX, vehY, 180, `n_v_${idx}`);
           })}

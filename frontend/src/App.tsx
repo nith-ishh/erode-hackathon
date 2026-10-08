@@ -8,6 +8,7 @@ import { SafetyShieldPanel } from './components/SafetyShieldPanel';
 import { LiveDecisionLog } from './components/LiveDecisionLog';
 import { LiveTimeSeriesCharts } from './components/LiveTimeSeriesCharts';
 import { GreenWavePanel } from './components/GreenWavePanel';
+import { AmbulanceControlPanel } from './components/AmbulanceControlPanel';
 import { ImpactDashboard } from './components/ImpactDashboard';
 import { DecisionAuditLog } from './components/DecisionAuditLog';
 import { Radio } from 'lucide-react';
@@ -170,6 +171,9 @@ export const App: React.FC = () => {
 
       {/* 2. Full-Width SUMO Digital Twin High-Definition Visualizer */}
       <JunctionVisualizer stateData={stateData} finalPhase={finalPhase} />
+
+      {/* 2.5 FEATURE: Emergency Ambulance Control & Siren Priority Manager */}
+      <AmbulanceControlPanel ambulanceData={stateData?.ambulance} emergencyData={stateData?.emergency} />
 
       {/* 3. CORE REQUIREMENT: ADAPTIVE AI vs FIXED-TIME SIDE-BY-SIDE PANEL */}
       <AdaptiveVsFixedPanel stateData={stateData} />

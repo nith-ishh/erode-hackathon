@@ -95,3 +95,37 @@ def get_safety_status():
         "rules": sim_service.safety_shield.RULES,
         "audit_stats": stats
     }
+
+# =========================================================================
+# INTERACTIVE AMBULANCE & SIREN TRIGGER ENDPOINTS
+# =========================================================================
+
+@router.post("/ambulance/spawn")
+def spawn_ambulance(
+    origin: str = Query("N", description="Origin approach: N, S, E, W"),
+    destination: str = Query("S", description="Destination approach: N, S, E, W"),
+    vehicle_id: str = Query("ambulance_108", description="Unique vehicle ID")
+):
+    """Spawns interactive ambulance on requested origin approach route."""
+    res = sim_service.spawn_ambulance(origin=origin, destination=destination, vehicle_id=vehicle_id)
+    return res
+
+@router.post("/ambulance/siren")
+def set_ambulance_siren(
+    active: bool = Query(True, description="Siren state: true for ON (Emergency Priority), false for OFF (Normal Mode)")
+):
+    """Toggles ambulance siren ON or OFF with safe clearance sequence."""
+    res = sim_service.set_ambulance_siren(siren_on=active)
+    return res
+
+@router.post("/ambulance/cancel")
+def cancel_ambulance_emergency():
+    """Cancels active ambulance mission and releases emergency signal priority."""
+    res = sim_service.cancel_ambulance_emergency()
+    return res
+
+@router.get("/ambulance/status")
+def get_ambulance_status():
+    """Returns live telemetry, ETA, route progress, and siren state machine status."""
+    status = sim_service.get_ambulance_status()
+    return status

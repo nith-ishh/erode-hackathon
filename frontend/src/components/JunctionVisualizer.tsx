@@ -31,6 +31,11 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
   const isEWYellow = finalPhase === 3;
 
 
+  const ambulance = stateData?.ambulance || {};
+  const isAmbActive = ambulance.active || isEmergency;
+  const ambApproach = ambulance.approach_edge ? ambulance.approach_edge.charAt(0).toUpperCase() : 'N';
+  const ambSiren = ambulance.siren_active ?? isEmergency;
+
   // Helper to get vehicle list for an approach
   const getVehiclesForApproach = (appKey: string) => {
     const app = approaches[appKey];
@@ -49,8 +54,11 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
       list.push(defaults[list.length % defaults.length]);
     }
 
-    if (isEmergency && appKey === 'N' && !list.includes('emergency')) {
-      list.unshift('emergency');
+    if (isAmbActive && appKey === ambApproach) {
+      const typeToInsert = ambSiren ? 'emergency' : 'ambulance_normal';
+      if (!list.includes(typeToInsert)) {
+        list.unshift(typeToInsert);
+      }
     }
 
     return list.slice(0, 8);
@@ -64,16 +72,33 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
       case 'emergency':
         return (
           <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
-            <rect x="-12" y="-22" width="24" height="44" rx="4" fill="#ffffff" stroke="#ef4444" strokeWidth="2" />
+            <rect x="-13" y="-23" width="26" height="46" rx="4" fill="#ffffff" stroke="#ef4444" strokeWidth="2.5" />
             <rect x="-3" y="-8" width="6" height="16" fill="#ef4444" />
             <rect x="-8" y="-3" width="16" height="6" fill="#ef4444" />
             <rect x="-9" y="-18" width="18" height="6" fill="#1e293b" rx="1" />
-            <circle cx="-5" cy="-2" r="3" fill="#38bdf8">
-              <animate attributeName="opacity" values="1;0.2;1" dur="0.5s" repeatCount="indefinite" />
+            {/* Flashing Blue & Red Strobes */}
+            <circle cx="-6" cy="-2" r="3.5" fill="#38bdf8">
+              <animate attributeName="opacity" values="1;0.1;1" dur="0.4s" repeatCount="indefinite" />
             </circle>
-            <circle cx="5" cy="-2" r="3" fill="#ef4444">
-              <animate attributeName="opacity" values="0.2;1;0.2" dur="0.5s" repeatCount="indefinite" />
+            <circle cx="6" cy="-2" r="3.5" fill="#ef4444">
+              <animate attributeName="opacity" values="0.1;1;0.1" dur="0.4s" repeatCount="indefinite" />
             </circle>
+            {/* Pulse Aura */}
+            <circle cx="0" cy="0" r="28" fill="none" stroke="#ef4444" strokeWidth="1.5" opacity="0.6">
+              <animate attributeName="r" values="20;32;20" dur="0.8s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.8;0.1;0.8" dur="0.8s" repeatCount="indefinite" />
+            </circle>
+            <text x="0" y="30" textAnchor="middle" fill="#f87171" fontSize="9" fontWeight="bold">SIREN ON</text>
+          </g>
+        );
+      case 'ambulance_normal':
+        return (
+          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
+            <rect x="-13" y="-23" width="26" height="46" rx="4" fill="#f8fafc" stroke="#94a3b8" strokeWidth="2" />
+            <rect x="-3" y="-8" width="6" height="16" fill="#ef4444" />
+            <rect x="-8" y="-3" width="16" height="6" fill="#ef4444" />
+            <rect x="-9" y="-18" width="18" height="6" fill="#334155" rx="1" />
+            <text x="0" y="30" textAnchor="middle" fill="#94a3b8" fontSize="8" fontWeight="bold">SIREN OFF</text>
           </g>
         );
       case 'bus':

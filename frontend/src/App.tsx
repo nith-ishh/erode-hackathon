@@ -1,10 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Header } from './components/Header';
 import { JunctionVisualizer } from './components/JunctionVisualizer';
+import { AdaptiveVsFixedPanel } from './components/AdaptiveVsFixedPanel';
+import { AdaptivityExplainer } from './components/AdaptivityExplainer';
 import { AIControlPanel } from './components/AIControlPanel';
 import { SafetyShieldPanel } from './components/SafetyShieldPanel';
-import { ImpactDashboard } from './components/ImpactDashboard';
+import { LiveDecisionLog } from './components/LiveDecisionLog';
+import { LiveTimeSeriesCharts } from './components/LiveTimeSeriesCharts';
 import { GreenWavePanel } from './components/GreenWavePanel';
+import { ImpactDashboard } from './components/ImpactDashboard';
 import { DecisionAuditLog } from './components/DecisionAuditLog';
 import { Radio } from 'lucide-react';
 
@@ -13,10 +17,12 @@ export const App: React.FC = () => {
   const [breakItActive, setBreakItActive] = useState<boolean>(false);
   const [emergencyActive, setEmergencyActive] = useState<boolean>(false);
   const [stateData, setStateData] = useState<any>(null);
+  const [metricsData, setMetricsData] = useState<any>(null);
+  const [isRunningTest, setIsRunningTest] = useState<boolean>(false);
   const [connectionMode, setConnectionMode] = useState<'ws' | 'polling' | 'connecting'>('connecting');
   const wsRef = useRef<WebSocket | null>(null);
 
-  // High-performance WebSocket Live Stream with REST Polling Fallback (Member 4 Lead)
+  // Real-time WebSocket Live Stream with REST Polling Fallback
   useEffect(() => {
     let pollingInterval: any = null;
 
@@ -65,7 +71,6 @@ export const App: React.FC = () => {
 
         ws.onclose = () => {
           startPolling();
-          // Attempt WS reconnection in 5 seconds
           setTimeout(setupWebSocket, 5000);
         };
       } catch (err) {
@@ -87,6 +92,29 @@ export const App: React.FC = () => {
       await fetch(`http://127.0.0.1:8000/api/scenario?name=${newScenario}`, { method: 'POST' });
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleSurgeTraffic = async (direction: string) => {
+    try {
+      await fetch(`http://127.0.0.1:8000/api/surge?direction=${direction}&amount=15.0`, { method: 'POST' });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleRunComparisonTest = async () => {
+    setIsRunningTest(true);
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/compare/run?scenario=${scenario}&steps=600&seed=12345`, { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        setMetricsData(data);
+      }
+    } catch (err) {
+      console.error("Comparison test error:", err);
+    } finally {
+      setIsRunningTest(false);
     }
   };
 
@@ -116,7 +144,7 @@ export const App: React.FC = () => {
 
   return (
     <div className="dashboard-container">
-      {/* 1. Header Bar with Connection Status */}
+      {/* 1. Header Bar with Scenarios, Surges, Comparison Trigger, and Break System */}
       <Header
         scenario={scenario}
         onScenarioChange={handleScenarioChange}
@@ -124,9 +152,12 @@ export const App: React.FC = () => {
         onToggleBreakIt={handleToggleBreakIt}
         emergencyActive={emergencyActive}
         onToggleEmergency={handleToggleEmergency}
+        onSurgeTraffic={handleSurgeTraffic}
+        onRunTest={handleRunComparisonTest}
+        isRunningTest={isRunningTest}
       />
 
-      {/* Live Stream Telemetry Banner */}
+      {/* Telemetry Status Line */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0.2rem 0 0.8rem 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           <Radio className="w-3.5 h-3.5" style={{ color: connectionMode === 'ws' ? '#22c55e' : '#38bdf8' }} />
@@ -139,20 +170,32 @@ export const App: React.FC = () => {
 
       {/* 2. Full-Width SUMO Digital Twin High-Definition Visualizer */}
       <JunctionVisualizer stateData={stateData} finalPhase={finalPhase} />
-      
-      {/* 3. AI Brain + Deterministic Safety Shield Grid */}
+
+      {/* 3. CORE REQUIREMENT: ADAPTIVE AI vs FIXED-TIME SIDE-BY-SIDE PANEL */}
+      <AdaptiveVsFixedPanel stateData={stateData} />
+
+      {/* 4. WHY IS THIS ADAPTIVE? (Proof of Adaptivity Pipeline) */}
+      <AdaptivityExplainer adaptivityProof={stateData?.adaptivity_proof} stateData={stateData} />
+
+      {/* 5. AI Brain + Deterministic Safety Shield Grid */}
       <div className="grid-2">
         <AIControlPanel stateData={stateData} />
         <SafetyShieldPanel stateData={stateData} breakItActive={breakItActive} />
       </div>
 
-      {/* 4. Emergency Green Wave Corridor Panel */}
+      {/* 6. Live Decision Log Event Stream */}
+      <LiveDecisionLog logs={stateData?.live_decision_log} />
+
+      {/* 7. Live Time-Series Dynamics Graphs */}
+      <LiveTimeSeriesCharts history={stateData?.time_series_history} />
+
+      {/* 8. Emergency Green Wave Corridor Panel */}
       <GreenWavePanel emergencyData={stateData?.emergency} />
 
-      {/* 5. Live Counterfactual Twin & Empirical Impact Dashboard (Member 4 Lead) */}
-      <ImpactDashboard />
+      {/* 9. Live Counterfactual Twin & Empirical Impact Dashboard */}
+      <ImpactDashboard metricsData={metricsData} />
 
-      {/* 6. SQLite Decision Audit Trail & Governance Inspector (Member 4 Lead) */}
+      {/* 10. SQLite Decision Audit Trail & Governance Inspector */}
       <DecisionAuditLog />
     </div>
   );

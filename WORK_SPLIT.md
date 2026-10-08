@@ -49,15 +49,15 @@
 ---
 
 ### 👤 Member 4: Full-Stack & Impact Dashboard Developer (Full-Stack / Frontend Lead)
-**Primary Focus**: React Dashboard, WebSockets live stream, FastAPI REST Backend, SQLite decision database, and Counterfactual Twin metrics.
+**Primary Focus**: React Dashboard, WebSockets live stream, FastAPI REST Backend, SQLite decision database, and Counterfactual Twin metrics (comparing Adaptive AI Traffic vs Fixed-Time Traffic side-by-side).
 
 * **Assigned Codebase Files**:
   * [`frontend/src/components/JunctionVisualizer.tsx`](file:///c:/Users/avine/Documents/erode%20hackathon/frontend/src/components/JunctionVisualizer.tsx) — Expansive 2D Digital Twin Map Canvas with dynamic vehicle driving animations.
-  * [`frontend/src/components/ImpactDashboard.tsx`](file:///c:/Users/avine/Documents/erode%20hackathon/frontend/src/components/ImpactDashboard.tsx) & [`counterfactual/comparison.py`](file:///c:/Users/avine/Documents/erode%20hackathon/counterfactual/comparison.py) — AI vs Baseline counterfactual twin charts and metrics.
+  * [`frontend/src/components/ImpactDashboard.tsx`](file:///c:/Users/avine/Documents/erode%20hackathon/frontend/src/components/ImpactDashboard.tsx) & [`counterfactual/comparison.py`](file:///c:/Users/avine/Documents/erode%20hackathon/counterfactual/comparison.py) — AI Adaptive Traffic vs Baseline Fixed-Time Traffic counterfactual twin comparison charts and live metrics.
   * [`backend/app/main.py`](file:///c:/Users/avine/Documents/erode%20hackathon/backend/app/main.py), [`api/routes.py`](file:///c:/Users/avine/Documents/erode%20hackathon/backend/app/api/routes.py), [`websocket/handler.py`](file:///c:/Users/avine/Documents/erode%20hackathon/backend/app/websocket/handler.py), and [`database/db.py`](file:///c:/Users/avine/Documents/erode%20hackathon/backend/app/database/db.py).
 * **Key Pitch & Demo Responsibilities**:
   * Control the live presentation flow on the React dashboard during the pitch.
-  * Present empirical performance metrics (35.9% Delay Reduction, 37.7% Queue Reduction, 38.9% Emergency Time Saved).
+  * Present empirical performance metrics comparing Adaptive AI Traffic against Fixed-Time Baseline Traffic (35.9% Delay Reduction, 37.7% Queue Reduction, 38.9% Emergency Time Saved).
 
 ---
 

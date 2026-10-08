@@ -21,16 +21,38 @@ interface JunctionVisualizerProps {
 
 export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateData, finalPhase }) => {
   const [speedMultiplier, setSpeedMultiplier] = useState<number>(0.2); // Ultra-slow default for pitch presentation!
+  const [animFrame, setAnimFrame] = useState<number>(0);
+
+  // 60FPS continuous animation loop so vehicles move smoothly without freezing or stuttering
+  React.useEffect(() => {
+    let animId: number;
+    let lastTime = performance.now();
+
+    const updateAnim = (now: number) => {
+      const delta = now - lastTime;
+      if (delta >= 25) { // ~40fps smooth frame updates
+        setAnimFrame((prev) => (prev + 1) % 100000);
+        lastTime = now;
+      }
+      animId = requestAnimationFrame(updateAnim);
+    };
+
+    animId = requestAnimationFrame(updateAnim);
+    return () => cancelAnimationFrame(animId);
+  }, []);
 
   const approaches: Record<string, ApproachData> = stateData?.state?.approaches || {};
   const isEmergency = stateData?.state?.emergency_present || false;
   const breakItActive = stateData?.safety_shield?.break_it_active || false;
   const fallbackActive = stateData?.safety_shield?.fallback_active || breakItActive;
-  const simStep = stateData?.step || 0;
+  const rawStep = stateData?.step || 0;
 
-  // Speed formulas (ultra-slow and calm for jury demonstration)
-  const flowSpeed = 6 * speedMultiplier;
-  const pedSpeed = 2.5 * speedMultiplier;
+  // Combine backend step with continuous browser frame tick so movement is fluid and uninterrupted
+  const simStep = rawStep * 5 + animFrame * 0.4;
+
+  // Speed formulas (ultra-smooth and calibrated for pitch demonstration)
+  const flowSpeed = 2.0 * speedMultiplier;
+  const pedSpeed = 0.8 * speedMultiplier;
 
   // Signal phase status: 0/1 = NS Green/Yellow, 2/3 = EW Green/Yellow
   const isNSGreen = finalPhase === 0;
@@ -73,7 +95,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
     switch (type) {
       case 'emergency':
         return (
-          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
+          <g transform={transform} key={key} style={{ transition: 'transform 0.05s linear' }}>
             <rect x="-12" y="-22" width="24" height="44" rx="4" fill="#ffffff" stroke="#ef4444" strokeWidth="2" />
             <rect x="-3" y="-8" width="6" height="16" fill="#ef4444" />
             <rect x="-8" y="-3" width="16" height="6" fill="#ef4444" />
@@ -88,7 +110,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
         );
       case 'bus':
         return (
-          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
+          <g transform={transform} key={key} style={{ transition: 'transform 0.05s linear' }}>
             <rect x="-13" y="-28" width="26" height="56" rx="3" fill="#991b1b" stroke="#f87171" strokeWidth="1.5" />
             <rect x="-10" y="-24" width="20" height="8" fill="#1e293b" rx="1" />
             <rect x="-10" y="-12" width="20" height="32" fill="#7f1d1d" rx="1" />
@@ -96,28 +118,28 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
         );
       case 'truck':
         return (
-          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
+          <g transform={transform} key={key} style={{ transition: 'transform 0.05s linear' }}>
             <rect x="-13" y="-26" width="26" height="52" rx="2" fill="#166534" stroke="#4ade80" strokeWidth="1.5" />
             <rect x="-11" y="-24" width="22" height="14" fill="#047857" rx="2" />
           </g>
         );
       case 'motorcycle':
         return (
-          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
+          <g transform={transform} key={key} style={{ transition: 'transform 0.05s linear' }}>
             <rect x="-4" y="-10" width="8" height="20" rx="2" fill="#854d0e" stroke="#fde047" strokeWidth="1" />
             <circle cx="0" cy="0" r="4" fill="#facc15" />
           </g>
         );
       case 'auto':
         return (
-          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
+          <g transform={transform} key={key} style={{ transition: 'transform 0.05s linear' }}>
             <polygon points="0,-12 10,8 -10,8" fill="#c2410c" stroke="#fb923c" strokeWidth="1.5" />
             <rect x="-9" y="0" width="18" height="10" fill="#ea580c" rx="1" />
           </g>
         );
       default: // car
         return (
-          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
+          <g transform={transform} key={key} style={{ transition: 'transform 0.05s linear' }}>
             <rect x="-11" y="-18" width="22" height="36" rx="5" fill="#0284c7" stroke="#38bdf8" strokeWidth="1.5" />
             <rect x="-8" y="-14" width="16" height="6" fill="#0f172a" rx="1" />
             <rect x="-8" y="8" width="16" height="4" fill="#0f172a" rx="1" />

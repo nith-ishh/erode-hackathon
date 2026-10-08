@@ -254,32 +254,44 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           ))}
 
           {/* Traffic Light Posts & Glowing Indicators */}
-          {/* North Signal Light */}
-          <circle cx="405" cy="145" r="12" fill="#0f172a" stroke="#334155" strokeWidth="2" />
-          <circle cx="405" cy="145" r="8" fill={getSignalColor(true)}>
-            <animate attributeName="r" values="8;9.5;8" dur="1.2s" repeatCount="indefinite" />
-          </circle>
+          {/* North Signal Light (governing North approach heading South) */}
+          <g>
+            <circle cx="395" cy="140" r="14" fill="#0f172a" stroke="#334155" strokeWidth="2" />
+            <circle cx="395" cy="140" r="9" fill={getSignalColor(true)}>
+              <animate attributeName="r" values="9;11;9" dur="1.2s" repeatCount="indefinite" />
+            </circle>
+            <text x="395" y="120" textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight="700">NORTH SIG</text>
+          </g>
 
-          {/* South Signal Light */}
-          <circle cx="595" cy="355" r="12" fill="#0f172a" stroke="#334155" strokeWidth="2" />
-          <circle cx="595" cy="355" r="8" fill={getSignalColor(true)}>
-            <animate attributeName="r" values="8;9.5;8" dur="1.2s" repeatCount="indefinite" />
-          </circle>
+          {/* South Signal Light (governing South approach heading North) */}
+          <g>
+            <circle cx="605" cy="360" r="14" fill="#0f172a" stroke="#334155" strokeWidth="2" />
+            <circle cx="605" cy="360" r="9" fill={getSignalColor(true)}>
+              <animate attributeName="r" values="9;11;9" dur="1.2s" repeatCount="indefinite" />
+            </circle>
+            <text x="605" y="385" textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight="700">SOUTH SIG</text>
+          </g>
 
-          {/* East Signal Light */}
-          <circle cx="595" cy="145" r="12" fill="#0f172a" stroke="#334155" strokeWidth="2" />
-          <circle cx="595" cy="145" r="8" fill={getSignalColor(false)}>
-            <animate attributeName="r" values="8;9.5;8" dur="1.2s" repeatCount="indefinite" />
-          </circle>
+          {/* East Signal Light (governing East approach heading West) */}
+          <g>
+            <circle cx="620" cy="155" r="14" fill="#0f172a" stroke="#334155" strokeWidth="2" />
+            <circle cx="620" cy="155" r="9" fill={getSignalColor(false)}>
+              <animate attributeName="r" values="9;11;9" dur="1.2s" repeatCount="indefinite" />
+            </circle>
+            <text x="645" y="140" textAnchor="start" fill="#94a3b8" fontSize="10" fontWeight="700">EAST SIG</text>
+          </g>
 
-          {/* West Signal Light */}
-          <circle cx="405" cy="355" r="12" fill="#0f172a" stroke="#334155" strokeWidth="2" />
-          <circle cx="405" cy="355" r="8" fill={getSignalColor(false)}>
-            <animate attributeName="r" values="8;9.5;8" dur="1.2s" repeatCount="indefinite" />
-          </circle>
+          {/* West Signal Light (governing West approach heading East) */}
+          <g>
+            <circle cx="380" cy="345" r="14" fill="#0f172a" stroke="#334155" strokeWidth="2" />
+            <circle cx="380" cy="345" r="9" fill={getSignalColor(false)}>
+              <animate attributeName="r" values="9;11;9" dur="1.2s" repeatCount="indefinite" />
+            </circle>
+            <text x="355" y="365" textAnchor="end" fill="#94a3b8" fontSize="10" fontWeight="700">WEST SIG</text>
+          </g>
 
           {/* ========================================================================= */}
-          {/* DYNAMICALLY ANIMATED DRIVING VEHICLES */}
+          {/* DYNAMICALLY ANIMATED DRIVING VEHICLES (ADAPTIVE TRAFFIC SIGNAL RULES) */}
           {/* ========================================================================= */}
 
           {/* NORTH INBOUND VEHICLES (Heading South) */}
@@ -287,11 +299,13 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             const laneX = idx % 2 === 0 ? 460 : 485;
             let vehY: number;
             if (isNSGreen) {
-              // Driving forward through green signal!
-              vehY = ((130 + idx * 45 + simStep * 30) % 520) - 20;
+              // GREEN SIGNAL: Drive smoothly South bound through intersection!
+              const flowSpeed = 25;
+              const startOffset = -30 + idx * 45;
+              vehY = ((startOffset + simStep * flowSpeed) % 540) - 20;
             } else {
-              // Stopping safely behind red stop line Y=160
-              vehY = 135 - Math.floor(idx / 2) * 55;
+              // RED SIGNAL: Queue up SAFELY behind Stopline Y=160
+              vehY = 130 - Math.floor(idx / 2) * 55;
             }
             return renderVehicleSVG(vtype, laneX, vehY, 180, `n_v_${idx}`);
           })}
@@ -301,86 +315,96 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             const laneX = idx % 2 === 0 ? 515 : 540;
             let vehY: number;
             if (isNSGreen) {
-              // Driving forward through green signal!
-              vehY = 520 - ((130 + idx * 45 + simStep * 30) % 520);
+              // GREEN SIGNAL: Drive smoothly North bound through intersection!
+              const flowSpeed = 25;
+              const startOffset = -30 + idx * 45;
+              vehY = 520 - ((startOffset + simStep * flowSpeed) % 540);
             } else {
-              // Stopping safely behind red stop line Y=340
-              vehY = 365 + Math.floor(idx / 2) * 55;
+              // RED SIGNAL: Queue up SAFELY behind Stopline Y=340
+              vehY = 370 + Math.floor(idx / 2) * 55;
             }
             return renderVehicleSVG(vtype, laneX, vehY, 0, `s_v_${idx}`);
           })}
 
           {/* WEST INBOUND VEHICLES (Heading East) */}
           {westVehicles.map((vtype, idx) => {
-            let vehX: number;
             const laneY = idx % 2 === 0 ? 270 : 295;
+            let vehX: number;
             if (isEWGreen) {
-              // Driving forward through green signal!
-              vehX = ((140 + idx * 45 + simStep * 30) % 1020) - 20;
+              // GREEN SIGNAL: Drive smoothly East bound through intersection!
+              const flowSpeed = 25;
+              const startOffset = -30 + idx * 45;
+              vehX = ((startOffset + simStep * flowSpeed) % 1040) - 20;
             } else {
-              // Stopping safely behind red stop line X=400
-              vehX = 365 - Math.floor(idx / 2) * 55;
+              // RED SIGNAL: Queue up SAFELY behind Stopline X=400
+              vehX = 370 - Math.floor(idx / 2) * 55;
             }
             return renderVehicleSVG(vtype, vehX, laneY, 90, `w_v_${idx}`);
           })}
 
           {/* EAST INBOUND VEHICLES (Heading West) */}
           {eastVehicles.map((vtype, idx) => {
-            let vehX: number;
             const laneY = idx % 2 === 0 ? 205 : 230;
+            let vehX: number;
             if (isEWGreen) {
-              // Driving forward through green signal!
-              vehX = 1020 - ((140 + idx * 45 + simStep * 30) % 1020);
+              // GREEN SIGNAL: Drive smoothly West bound through intersection!
+              const flowSpeed = 25;
+              const startOffset = -30 + idx * 45;
+              vehX = 1020 - ((startOffset + simStep * flowSpeed) % 1040);
             } else {
-              // Stopping safely behind red stop line X=600
-              vehX = 635 + Math.floor(idx / 2) * 55;
+              // RED SIGNAL: Queue up SAFELY behind Stopline X=600
+              vehX = 630 + Math.floor(idx / 2) * 55;
             }
             return renderVehicleSVG(vtype, vehX, laneY, 270, `e_v_${idx}`);
           })}
 
           {/* ========================================================================= */}
-          {/* ANIMATED PEDESTRIANS WALKING ON CROSSWALKS */}
+          {/* ANIMATED PEDESTRIANS WALKING ON SAFE CROSSWALKS */}
           {/* ========================================================================= */}
 
-          {/* North Crosswalk Pedestrians */}
+          {/* North Crosswalk Pedestrians (Walks safely when NS Signal is RED) */}
           {[...Array(approaches.N?.pedestrians_waiting || 3)].map((_, i) => {
-            const pX = 430 + ((i * 35 + simStep * 12) % 130);
+            const isSafeToWalk = !isNSGreen;
+            const pX = isSafeToWalk ? 430 + ((i * 35 + simStep * 12) % 130) : 425;
             return (
               <g key={`ped_n_${i}`} transform={`translate(${pX}, 170)`} style={{ transition: 'all 0.5s ease' }}>
-                <circle cx="0" cy="0" r="5" fill="#f59e0b" stroke="#ffffff" strokeWidth="1" />
+                <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
                 <circle cx="0" cy="-6" r="3" fill="#fbbf24" />
               </g>
             );
           })}
 
-          {/* South Crosswalk Pedestrians */}
+          {/* South Crosswalk Pedestrians (Walks safely when NS Signal is RED) */}
           {[...Array(approaches.S?.pedestrians_waiting || 3)].map((_, i) => {
-            const pX = 570 - ((i * 35 + simStep * 12) % 130);
+            const isSafeToWalk = !isNSGreen;
+            const pX = isSafeToWalk ? 570 - ((i * 35 + simStep * 12) % 130) : 575;
             return (
               <g key={`ped_s_${i}`} transform={`translate(${pX}, 330)`} style={{ transition: 'all 0.5s ease' }}>
-                <circle cx="0" cy="0" r="5" fill="#f59e0b" stroke="#ffffff" strokeWidth="1" />
+                <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
                 <circle cx="0" cy="-6" r="3" fill="#fbbf24" />
               </g>
             );
           })}
 
-          {/* East Crosswalk Pedestrians */}
+          {/* East Crosswalk Pedestrians (Walks safely when EW Signal is RED) */}
           {[...Array(approaches.E?.pedestrians_waiting || 2)].map((_, i) => {
-            const pY = 190 + ((i * 35 + simStep * 12) % 120);
+            const isSafeToWalk = !isEWGreen;
+            const pY = isSafeToWalk ? 190 + ((i * 35 + simStep * 12) % 120) : 185;
             return (
               <g key={`ped_e_${i}`} transform={`translate(590, ${pY})`} style={{ transition: 'all 0.5s ease' }}>
-                <circle cx="0" cy="0" r="5" fill="#f59e0b" stroke="#ffffff" strokeWidth="1" />
+                <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
                 <circle cx="0" cy="-6" r="3" fill="#fbbf24" />
               </g>
             );
           })}
 
-          {/* West Crosswalk Pedestrians */}
+          {/* West Crosswalk Pedestrians (Walks safely when EW Signal is RED) */}
           {[...Array(approaches.W?.pedestrians_waiting || 2)].map((_, i) => {
-            const pY = 310 - ((i * 35 + simStep * 12) % 120);
+            const isSafeToWalk = !isEWGreen;
+            const pY = isSafeToWalk ? 310 - ((i * 35 + simStep * 12) % 120) : 315;
             return (
               <g key={`ped_w_${i}`} transform={`translate(410, ${pY})`} style={{ transition: 'all 0.5s ease' }}>
-                <circle cx="0" cy="0" r="5" fill="#f59e0b" stroke="#ffffff" strokeWidth="1" />
+                <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
                 <circle cx="0" cy="-6" r="3" fill="#fbbf24" />
               </g>
             );

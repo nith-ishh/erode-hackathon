@@ -34,7 +34,7 @@
 
 ---
 
-### 👤 Member 3: Simulation & Emergency Corridor Engineer (Traffic Sim & Green Wave Lead)
+### 👤 Member 3: Nithish — Simulation & Emergency Corridor Engineer (Traffic Sim & Green Wave Lead)
 **Primary Focus**: SUMO Digital Twin network, TraCI telemetry interface, Delhi dataset demand calibration, and Emergency Green Wave Corridor.
 
 * **Assigned Codebase Files**:
@@ -43,12 +43,12 @@
   * [`scripts/process_dataset.py`](file:///c:/Users/avine/Documents/erode%20hackathon/scripts/process_dataset.py) & [`generate_demand.py`](file:///c:/Users/avine/Documents/erode%20hackathon/scripts/generate_demand.py) — Delhi traffic density calibration profiles and dynamic scenario route generator.
   * [`emergency/emergency_detector.py`](file:///c:/Users/avine/Documents/erode%20hackathon/emergency/emergency_detector.py) & [`green_wave.py`](file:///c:/Users/avine/Documents/erode%20hackathon/emergency/green_wave.py) — Ambulance priority verification and multi-junction ($J_1 \rightarrow J_2 \rightarrow J_3$) Green Wave corridor coordinator.
 * **Key Pitch & Demo Responsibilities**:
-  * Trigger the **Emergency Ambulance Priority** feature.
-  * Show coordinated signal timing progression across neighboring junctions without spilling downstream congestion.
+  * Trigger the **Emergency Ambulance Priority** feature live during the demo.
+  * Show coordinated signal timing progression across neighboring junctions ($J_1 \rightarrow J_2 \rightarrow J_3$) without spilling downstream congestion.
 
 ---
 
-### 👤 Member 4: Nithish — Full-Stack & Impact Dashboard Developer (Full-Stack / Frontend Lead)
+### 👤 Member 4: Full-Stack & Impact Dashboard Developer (Full-Stack / Frontend Lead)
 **Primary Focus**: React Dashboard, WebSockets live stream, FastAPI REST Backend, SQLite decision database, and Counterfactual Twin metrics (comparing Adaptive AI Traffic vs Fixed-Time Traffic side-by-side).
 
 * **Assigned Codebase Files**:
@@ -65,17 +65,17 @@
 
 | Project Feature | Primary Lead | Secondary Support |
 | :--- | :--- | :--- |
-| **FEATURE 1: Mixed-Traffic RL Brain** | **Member 1** (AI/ML Lead) | Member 3 (Traffic Demand) |
+| **FEATURE 1: Mixed-Traffic RL Brain** | **Member 1** (AI/ML Lead) | Nithish (Member 3) (Traffic Demand) |
 | **FEATURE 2: Safety Shield & Explain Engine** | **Member 2** (Safety Lead) | Member 1 (PPO Policy) |
-| **FEATURE 3: Live Counterfactual Twin & Dashboard** | **Nithish (Member 4)** (Full-Stack Lead) | Member 2 (Metrics Audit) |
-| **FEATURE 4: Emergency Green Corridor & Green Wave** | **Member 3** (Sim/Corridor Lead) | Nithish (Member 4) (UI Visuals) |
+| **FEATURE 3: Live Counterfactual Twin & Dashboard** | **Member 4** (Full-Stack Lead) | Member 2 (Metrics Audit) |
+| **FEATURE 4: Emergency Green Corridor & Green Wave** | **Nithish (Member 3)** (Sim/Corridor Lead) | Member 4 (UI Visuals) |
 
 ---
 
 ## 🚀 Recommended Demo Presentation Order (Hackathon Pitch)
 
-1. **Nithish (Full-Stack Lead)** opens the live dashboard and presents the **2D SUMO Digital Twin** running in real-time.
+1. **Member 4 (Full-Stack Lead)** opens the live dashboard and presents the **2D SUMO Digital Twin** running in real-time.
 2. **Member 1 (AI Lead)** explains the **PPO RL Brain**, **PCU-weighted queues** (Cars, 2-Wheelers, Buses, Trucks, Autos), and multi-objective rewards.
 3. **Member 2 (Safety Lead)** hits the **`[ BREAK-IT ]`** button to inject a simulated sensor fault, demonstrating that the **Safety Shield** immediately blocks PPO and activates zero-risk fixed-time fallback.
-4. **Member 3 (Sim Lead)** triggers the **Emergency Ambulance Corridor**, demonstrating green pre-emption and multi-junction **Green Wave coordination**.
-5. **Nithish (Full-Stack Lead)** concludes by showcasing the **Counterfactual Twin Impact Dashboard** comparing Adaptive AI Traffic vs Fixed-Time Traffic with real simulation metrics (Delay %, Queue %, and Travel Time % saved).
+4. **Nithish (Member 3)** triggers the **Emergency Ambulance Corridor**, demonstrating green pre-emption and multi-junction **Green Wave coordination**.
+5. **Member 4 (Full-Stack Lead)** concludes by showcasing the **Counterfactual Twin Impact Dashboard** comparing Adaptive AI Traffic vs Fixed-Time Traffic with real simulation metrics (Delay %, Queue %, and Travel Time % saved).

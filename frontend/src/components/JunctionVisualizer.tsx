@@ -245,14 +245,51 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
               <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255, 255, 255, 0.03)" strokeWidth="1" />
             </pattern>
           </defs>
-          <rect width="1000" height="500" fill="#070a12" />
+          {/* Urban Landscape & Corner Parks (Filling canvas completely with rich urban environment) */}
+          <rect width="1000" height="500" fill="#0b1326" />
           <rect width="1000" height="500" fill="url(#gridPattern)" />
 
-          {/* Urban Corner Blocks */}
-          <rect x="0" y="0" width="420" height="180" fill="#0d1527" rx="8" />
-          <rect x="580" y="0" width="420" height="180" fill="#0d1527" rx="8" />
-          <rect x="0" y="320" width="420" height="180" fill="#0d1527" rx="8" />
-          <rect x="580" y="320" width="420" height="180" fill="#0d1527" rx="8" />
+          {/* Corner Urban Parks & Lawn Blocks */}
+          {/* North-West Park Block */}
+          <g>
+            <rect x="0" y="0" width="415" height="175" fill="#0c2419" rx="6" />
+            <rect x="10" y="10" width="395" height="155" fill="#083322" rx="6" stroke="rgba(34, 197, 94, 0.2)" strokeWidth="1" />
+            {/* Park Pathways & Trees */}
+            <circle cx="100" cy="80" r="18" fill="#15803d" opacity="0.6" />
+            <circle cx="280" cy="70" r="22" fill="#15803d" opacity="0.6" />
+            <path d="M 0 175 L 415 175" stroke="#334155" strokeWidth="4" />
+            <path d="M 415 0 L 415 175" stroke="#334155" strokeWidth="4" />
+          </g>
+
+          {/* North-East Park Block */}
+          <g>
+            <rect x="585" y="0" width="415" height="175" fill="#0c2419" rx="6" />
+            <rect x="595" y="10" width="395" height="155" fill="#083322" rx="6" stroke="rgba(34, 197, 94, 0.2)" strokeWidth="1" />
+            <circle cx="720" cy="80" r="20" fill="#15803d" opacity="0.6" />
+            <circle cx="900" cy="90" r="18" fill="#15803d" opacity="0.6" />
+            <path d="M 585 175 L 1000 175" stroke="#334155" strokeWidth="4" />
+            <path d="M 585 0 L 585 175" stroke="#334155" strokeWidth="4" />
+          </g>
+
+          {/* South-West Park Block */}
+          <g>
+            <rect x="0" y="325" width="415" height="175" fill="#0c2419" rx="6" />
+            <rect x="10" y="335" width="395" height="155" fill="#083322" rx="6" stroke="rgba(34, 197, 94, 0.2)" strokeWidth="1" />
+            <circle cx="120" cy="410" r="22" fill="#15803d" opacity="0.6" />
+            <circle cx="300" cy="420" r="19" fill="#15803d" opacity="0.6" />
+            <path d="M 0 325 L 415 325" stroke="#334155" strokeWidth="4" />
+            <path d="M 415 325 L 415 500" stroke="#334155" strokeWidth="4" />
+          </g>
+
+          {/* South-East Park Block */}
+          <g>
+            <rect x="585" y="325" width="415" height="175" fill="#0c2419" rx="6" />
+            <rect x="595" y="335" width="395" height="155" fill="#083322" rx="6" stroke="rgba(34, 197, 94, 0.2)" strokeWidth="1" />
+            <circle cx="700" cy="410" r="18" fill="#15803d" opacity="0.6" />
+            <circle cx="880" cy="400" r="22" fill="#15803d" opacity="0.6" />
+            <path d="M 585 325 L 1000 325" stroke="#334155" strokeWidth="4" />
+            <path d="M 585 325 L 585 500" stroke="#334155" strokeWidth="4" />
+          </g>
 
           {/* Asphalt Roads */}
           <rect x="420" y="0" width="160" height="500" fill="#1e293b" />
@@ -309,7 +346,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             <rect key={`e_cw_${i}`} x="583" y={185 + i * 14} width="14" height="8" fill="rgba(255, 255, 255, 0.7)" rx="1" />
           ))}
 
-          {/* Traffic Light Posts & Glowing Indicators */}
+          {/* Vehicle Traffic Light Posts & Glowing Indicators */}
           {/* North Signal Light (governing North approach heading South) */}
           <g>
             <circle cx="395" cy="140" r="14" fill="#0f172a" stroke="#334155" strokeWidth="2" />
@@ -345,6 +382,55 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             </circle>
             <text x="355" y="365" textAnchor="end" fill="#94a3b8" fontSize="10" fontWeight="700">WEST SIG</text>
           </g>
+
+          {/* ========================================================================= */}
+          {/* DEDICATED PEDESTRIAN WALK SIGNALS (WALK vs DON'T WALK LIGHTS) */}
+          {/* ========================================================================= */}
+
+          {/* North Crosswalk Pedestrian Signal */}
+          <g transform="translate(500, 145)">
+            <rect x="-24" y="-12" width="48" height="24" rx="4" fill="#0f172a" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="-10" cy="0" r="6" fill={!isNSGreen ? "#22c55e" : "#1e293b"}>
+              {!isNSGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
+            </circle>
+            <text x="6" y="4" textAnchor="middle" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="9" fontWeight="900">
+              {!isNSGreen ? "WALK" : "WAIT"}
+            </text>
+          </g>
+
+          {/* South Crosswalk Pedestrian Signal */}
+          <g transform="translate(500, 355)">
+            <rect x="-24" y="-12" width="48" height="24" rx="4" fill="#0f172a" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="-10" cy="0" r="6" fill={!isNSGreen ? "#22c55e" : "#1e293b"}>
+              {!isNSGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
+            </circle>
+            <text x="6" y="4" textAnchor="middle" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="9" fontWeight="900">
+              {!isNSGreen ? "WALK" : "WAIT"}
+            </text>
+          </g>
+
+          {/* West Crosswalk Pedestrian Signal */}
+          <g transform="translate(380, 250)">
+            <rect x="-12" y="-24" width="24" height="48" rx="4" fill="#0f172a" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="0" cy="-10" r="6" fill={!isEWGreen ? "#22c55e" : "#1e293b"}>
+              {!isEWGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
+            </circle>
+            <text x="0" y="14" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">
+              {!isEWGreen ? "WALK" : "WAIT"}
+            </text>
+          </g>
+
+          {/* East Crosswalk Pedestrian Signal */}
+          <g transform="translate(620, 250)">
+            <rect x="-12" y="-24" width="24" height="48" rx="4" fill="#0f172a" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="0" cy="-10" r="6" fill={!isEWGreen ? "#22c55e" : "#1e293b"}>
+              {!isEWGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
+            </circle>
+            <text x="0" y="14" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">
+              {!isEWGreen ? "WALK" : "WAIT"}
+            </text>
+          </g>
+
 
           {/* ========================================================================= */}
           {/* DYNAMICALLY ANIMATED DRIVING VEHICLES (ULTRA-SLOW PITCH PRESENTATION SPEED) */}

@@ -82,7 +82,8 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
       list.push(defaults[list.length % defaults.length]);
     }
 
-    if (isEmergency && appKey === 'N' && !list.includes('emergency')) {
+    // Always show ambulance in North approach vehicle stream
+    if (appKey === 'N' && !list.includes('emergency')) {
       list.unshift('emergency');
     }
 
@@ -97,47 +98,58 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
       case 'emergency':
         return (
           <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
-            {/* Siren Pulsing Emergency Halo */}
-            <circle cx="0" cy="0" r="32" fill="rgba(239, 68, 68, 0.25)">
-              <animate attributeName="r" values="24;36;24" dur="0.6s" repeatCount="indefinite" />
-              <animate attributeName="opacity" values="0.4;0.1;0.4" dur="0.6s" repeatCount="indefinite" />
-            </circle>
+            {/* Siren Pulsing Emergency Halo (Active ONLY when Siren is ON) */}
+            {isEmergency && (
+              <circle cx="0" cy="0" r="32" fill="rgba(239, 68, 68, 0.25)">
+                <animate attributeName="r" values="24;36;24" dur="0.6s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.4;0.1;0.4" dur="0.6s" repeatCount="indefinite" />
+              </circle>
+            )}
 
             {/* Main White Ambulance Body */}
-            <rect x="-14" y="-25" width="28" height="50" rx="5" fill="#ffffff" stroke="#dc2626" strokeWidth="2.5" />
+            <rect x="-14" y="-25" width="28" height="50" rx="5" fill="#ffffff" stroke={isEmergency ? "#dc2626" : "#64748b"} strokeWidth="2.5" />
 
             {/* Front Hood & Windshield */}
             <rect x="-11" y="-21" width="22" height="8" fill="#0f172a" rx="2" stroke="#38bdf8" strokeWidth="0.8" />
             {/* Side Mirrors */}
-            <rect x="-17" y="-18" width="3" height="6" fill="#dc2626" rx="1" />
-            <rect x="14" y="-18" width="3" height="6" fill="#dc2626" rx="1" />
+            <rect x="-17" y="-18" width="3" height="6" fill={isEmergency ? "#dc2626" : "#64748b"} rx="1" />
+            <rect x="14" y="-18" width="3" height="6" fill={isEmergency ? "#dc2626" : "#64748b"} rx="1" />
 
             {/* Medical Red Cross Emblem (Roof Center) */}
             <g transform="translate(0, 3)">
-              <rect x="-3" y="-10" width="6" height="20" fill="#dc2626" rx="1" />
-              <rect x="-10" y="-3" width="20" height="6" fill="#dc2626" rx="1" />
+              <rect x="-3" y="-10" width="6" height="20" fill={isEmergency ? "#dc2626" : "#475569"} rx="1" />
+              <rect x="-10" y="-3" width="20" height="6" fill={isEmergency ? "#dc2626" : "#475569"} rx="1" />
             </g>
 
-            {/* Alternating LED Siren Lightbar */}
+            {/* LED Siren Lightbar */}
             <rect x="-10" y="-10" width="20" height="4" fill="#0f172a" rx="1" />
-            {/* Left Cyan Strobe */}
-            <circle cx="-6" cy="-8" r="3.5" fill="#38bdf8">
-              <animate attributeName="fill" values="#38bdf8;#0284c7;#38bdf8" dur="0.3s" repeatCount="indefinite" />
-              <animate attributeName="r" values="3.5;4.5;3.5" dur="0.3s" repeatCount="indefinite" />
-            </circle>
-            {/* Right Red Strobe */}
-            <circle cx="6" cy="-8" r="3.5" fill="#ef4444">
-              <animate attributeName="fill" values="#ef4444;#b91c1c;#ef4444" dur="0.3s" repeatCount="indefinite" />
-              <animate attributeName="r" values="4.5;3.5;4.5" dur="0.3s" repeatCount="indefinite" />
-            </circle>
+            {isEmergency ? (
+              <>
+                {/* Active Siren Flashing LED Strobes */}
+                <circle cx="-6" cy="-8" r="3.5" fill="#38bdf8">
+                  <animate attributeName="fill" values="#38bdf8;#0284c7;#38bdf8" dur="0.3s" repeatCount="indefinite" />
+                  <animate attributeName="r" values="3.5;4.5;3.5" dur="0.3s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="6" cy="-8" r="3.5" fill="#ef4444">
+                  <animate attributeName="fill" values="#ef4444;#b91c1c;#ef4444" dur="0.3s" repeatCount="indefinite" />
+                  <animate attributeName="r" values="4.5;3.5;4.5" dur="0.3s" repeatCount="indefinite" />
+                </circle>
+              </>
+            ) : (
+              <>
+                {/* Standby Siren Lights (Siren OFF) */}
+                <circle cx="-6" cy="-8" r="3" fill="#64748b" />
+                <circle cx="6" cy="-8" r="3" fill="#64748b" />
+              </>
+            )}
 
-            {/* High-Vis Red Side Stripes */}
-            <rect x="-14" y="-12" width="2" height="30" fill="#dc2626" />
-            <rect x="12" y="-12" width="2" height="30" fill="#dc2626" />
+            {/* High-Vis Side Stripes */}
+            <rect x="-14" y="-12" width="2" height="30" fill={isEmergency ? "#dc2626" : "#64748b"} />
+            <rect x="12" y="-12" width="2" height="30" fill={isEmergency ? "#dc2626" : "#64748b"} />
 
-            {/* Bold 108 AMBULANCE Label */}
-            <text x="0" y="21" textAnchor="middle" fill="#dc2626" fontSize="6.5" fontWeight="900" letterSpacing="0.5">
-              108 AMBULANCE
+            {/* 108 AMBULANCE Status Label */}
+            <text x="0" y="21" textAnchor="middle" fill={isEmergency ? "#dc2626" : "#475569"} fontSize="6" fontWeight="900" letterSpacing="0.3">
+              {isEmergency ? "🚨 108 URGENT" : "108 ROUTINE"}
             </text>
           </g>
         );
@@ -198,15 +210,15 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          {/* PROMINENT TRIGGER AMBULANCE BUTTON */}
+          {/* SIREN STATE TOGGLE BUTTON */}
           <button
             onClick={handleTriggerAmbulanceClick}
             style={{
               background: isEmergency
                 ? 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)'
-                : 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)',
+                : 'linear-gradient(135deg, #334155 0%, #1e293b 100%)',
               color: 'white',
-              border: '1px solid rgba(248, 113, 113, 0.6)',
+              border: isEmergency ? '1px solid rgba(248, 113, 113, 0.8)' : '1px solid rgba(148, 163, 184, 0.4)',
               borderRadius: '0.5rem',
               padding: '0.5rem 1rem',
               fontSize: '0.85rem',
@@ -215,12 +227,12 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
               alignItems: 'center',
               gap: '0.5rem',
               cursor: 'pointer',
-              boxShadow: isEmergency ? '0 0 20px rgba(239, 68, 68, 0.8)' : '0 4px 12px rgba(220, 38, 38, 0.4)',
+              boxShadow: isEmergency ? '0 0 20px rgba(239, 68, 68, 0.8)' : 'none',
               transition: 'all 0.3s ease'
             }}
           >
             <Siren className="w-4 h-4" />
-            <span>{isEmergency ? '🚨 AMBULANCE ACTIVE' : '🚨 TRIGGER AMBULANCE'}</span>
+            <span>{isEmergency ? '🚨 SIREN ON: URGENT EMERGENCY' : '🔔 SIREN OFF: ROUTINE MODE'}</span>
           </button>
 
           {/* Speed Control Selector for Jury Presentation */}

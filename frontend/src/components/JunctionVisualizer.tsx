@@ -71,17 +71,54 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
     switch (type) {
       case 'emergency':
         return (
-          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
-            <rect x="-13" y="-23" width="26" height="46" rx="4" fill="#ffffff" stroke="#ef4444" strokeWidth="2.5" />
-            <rect x="-3" y="-8" width="6" height="16" fill="#ef4444" />
-            <rect x="-8" y="-3" width="16" height="6" fill="#ef4444" />
-            <rect x="-9" y="-18" width="18" height="6" fill="#1e293b" rx="1" />
-            {/* Flashing Blue & Red Strobes */}
-            <circle cx="-6" cy="-2" r="3.5" fill="#38bdf8">
-              <animate attributeName="opacity" values="1;0.1;1" dur="0.4s" repeatCount="indefinite" />
+            {/* 1. Large Pulsing Dual-Color Radiant Siren Halo (Blue on Left, Red on Right) */}
+            <circle cx="-8" cy="-2" r="24" fill="#00e5ff" opacity="0.45">
+              <animate attributeName="opacity" values="0.75;0.05;0.75" dur="0.3s" repeatCount="indefinite" />
+              <animate attributeName="r" values="16;28;16" dur="0.3s" repeatCount="indefinite" />
             </circle>
-            <circle cx="6" cy="-2" r="3.5" fill="#ef4444">
-              <animate attributeName="opacity" values="0.1;1;0.1" dur="0.4s" repeatCount="indefinite" />
+            <circle cx="8" cy="-2" r="24" fill="#ff0055" opacity="0.45">
+              <animate attributeName="opacity" values="0.05;0.75;0.05" dur="0.3s" repeatCount="indefinite" />
+              <animate attributeName="r" values="28;16;28" dur="0.3s" repeatCount="indefinite" />
+            </circle>
+
+            {/* 2. Vehicle Body (White with Red Emergency Borders) */}
+            <rect x="-13" y="-23" width="26" height="46" rx="4" fill="#ffffff" stroke="#ef4444" strokeWidth="2.5" />
+            
+            {/* Red Cross Emblem on Roof */}
+            <rect x="-3" y="2" width="6" height="14" fill="#ef4444" />
+            <rect x="-7" y="6" width="14" height="6" fill="#ef4444" />
+            
+            {/* Windshield & Rear Windows */}
+            <rect x="-10" y="-18" width="20" height="6" fill="#0f172a" rx="1.5" />
+            <rect x="-9" y="16" width="18" height="4" fill="#0f172a" rx="1" />
+
+            {/* 3. High-Intensity Roof Emergency Siren Lightbar */}
+            <rect x="-11" y="-6" width="22" height="8" rx="2" fill="#0f172a" stroke="#334155" strokeWidth="1" />
+            {/* Left Blue Strobe Capsule */}
+            <rect x="-10" y="-5" width="9" height="6" rx="1.5" fill="#00e5ff">
+              <animate attributeName="fill" values="#00f0ff;#0284c7;#00f0ff" dur="0.3s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="1;0.15;1" dur="0.3s" repeatCount="indefinite" />
+            </rect>
+            {/* Center Bar Divider */}
+            <line x1="0" y1="-6" x2="0" y2="2" stroke="#0f172a" strokeWidth="2" />
+            {/* Right Red Strobe Capsule */}
+            <rect x="1" y="-5" width="9" height="6" rx="1.5" fill="#ff0044">
+              <animate attributeName="fill" values="#881337;#ff0044;#881337" dur="0.3s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.15;1;0.15" dur="0.3s" repeatCount="indefinite" />
+            </rect>
+
+            {/* 4. Alternating Corner Strobe Flashers */}
+            <circle cx="-10" cy="-21" r="2.5" fill="#00e5ff">
+              <animate attributeName="opacity" values="1;0.1;1" dur="0.2s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="10" cy="-21" r="2.5" fill="#ff0055">
+              <animate attributeName="opacity" values="0.1;1;0.1" dur="0.2s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="-10" cy="19" r="2" fill="#ff0055">
+              <animate attributeName="opacity" values="0.1;1;0.1" dur="0.2s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="10" cy="19" r="2" fill="#00e5ff">
+              <animate attributeName="opacity" values="1;0.1;1" dur="0.2s" repeatCount="indefinite" />
             </circle>
             {/* Pulse Aura */}
             <circle cx="0" cy="0" r="28" fill="none" stroke="#ef4444" strokeWidth="1.5" opacity="0.6">

@@ -232,11 +232,8 @@ class SimulationService:
             approaches["W"]["pcu_queue"] = round(approaches.get("W", {}).get("pcu_queue", 5.0) + (self.surge_ew * 0.4), 1)
             self.surge_ew = max(0.0, self.surge_ew - 0.5)
 
-        raw_state["timestamp"] = sim_time
-        raw_state["current_phase"] = cur_phase
-
         # Inject ambulance state details
-        if amb_status["active"]:
+        if amb_status.get("active", False):
             raw_state["emergency_present"] = True
             raw_state["emergency_details"] = [{
                 "id": amb_status["vehicle_id"] or "ambulance_108",
@@ -245,7 +242,7 @@ class SimulationService:
                 "speed": amb_status["speed_mps"],
                 "siren_active": amb_status["siren_active"]
             }]
-        elif self.emergency_trigger:
+        elif self.emergency_trigger or self.scenario == "emergency":
             raw_state["emergency_present"] = True
             raw_state["emergency_details"] = [{
                 "id": "emergency_ambulance_1",
@@ -254,6 +251,9 @@ class SimulationService:
                 "speed": 16.5,
                 "siren_active": True
             }]
+        else:
+            raw_state["emergency_present"] = False
+            raw_state["emergency_details"] = []
 
         # 2. Emergency Detection & Green Wave Coordination
         em_info = self.emergency_detector.detect_emergency(raw_state)

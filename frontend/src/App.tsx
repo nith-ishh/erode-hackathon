@@ -33,7 +33,7 @@ export const App: React.FC = () => {
           } catch (err) {
             // Reconnecting
           }
-        }, 1000);
+        }, 250);
       }
     };
 

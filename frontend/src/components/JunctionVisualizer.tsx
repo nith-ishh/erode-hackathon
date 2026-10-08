@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Siren, Shield, Activity } from 'lucide-react';
 
 interface ApproachData {
@@ -25,14 +25,27 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
   emergencyActive = false,
   onToggleEmergency
 }) => {
-  const [speedMultiplier, setSpeedMultiplier] = useState<number>(0.2); // Ultra-slow default for pitch presentation!
+  const [speedMultiplier, setSpeedMultiplier] = useState<number>(0.5); // High refresh rate default
   const [localEmergency, setLocalEmergency] = useState<boolean>(false);
+  const [animFrame, setAnimFrame] = useState<number>(0);
+
+  // 60 FPS continuous animation loop for high refresh rate lag-free rendering
+  useEffect(() => {
+    let animId: number;
+    const updateLoop = () => {
+      setAnimFrame((prev) => (prev + 1) % 10000);
+      animId = requestAnimationFrame(updateLoop);
+    };
+    animId = requestAnimationFrame(updateLoop);
+    return () => cancelAnimationFrame(animId);
+  }, []);
 
   const approaches: Record<string, ApproachData> = stateData?.state?.approaches || {};
   const isEmergency = emergencyActive || localEmergency || stateData?.state?.emergency_present || false;
   const breakItActive = stateData?.safety_shield?.break_it_active || false;
   const fallbackActive = stateData?.safety_shield?.fallback_active || breakItActive;
-  const simStep = stateData?.step || 0;
+  const rawStep = stateData?.step || 0;
+  const simStep = rawStep * 5 + animFrame * 0.25;
 
   const handleTriggerAmbulanceClick = () => {
     if (onToggleEmergency) {
@@ -97,7 +110,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
     switch (type) {
       case 'emergency':
         return (
-          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
+          <g transform={transform} key={key} style={{ transition: 'transform 0.05s linear' }}>
             {/* Siren Pulsing Emergency Halo (Active ONLY when Siren is ON) */}
             {isEmergency && (
               <circle cx="0" cy="0" r="32" fill="rgba(239, 68, 68, 0.25)">
@@ -155,7 +168,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
         );
       case 'bus':
         return (
-          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
+          <g transform={transform} key={key} style={{ transition: 'transform 0.05s linear' }}>
             <rect x="-13" y="-28" width="26" height="56" rx="3" fill="#991b1b" stroke="#f87171" strokeWidth="1.5" />
             <rect x="-10" y="-24" width="20" height="8" fill="#1e293b" rx="1" />
             <rect x="-10" y="-12" width="20" height="32" fill="#7f1d1d" rx="1" />
@@ -163,28 +176,28 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
         );
       case 'truck':
         return (
-          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
+          <g transform={transform} key={key} style={{ transition: 'transform 0.05s linear' }}>
             <rect x="-13" y="-26" width="26" height="52" rx="2" fill="#166534" stroke="#4ade80" strokeWidth="1.5" />
             <rect x="-11" y="-24" width="22" height="14" fill="#047857" rx="2" />
           </g>
         );
       case 'motorcycle':
         return (
-          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
+          <g transform={transform} key={key} style={{ transition: 'transform 0.05s linear' }}>
             <rect x="-4" y="-10" width="8" height="20" rx="2" fill="#854d0e" stroke="#fde047" strokeWidth="1" />
             <circle cx="0" cy="0" r="4" fill="#facc15" />
           </g>
         );
       case 'auto':
         return (
-          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
+          <g transform={transform} key={key} style={{ transition: 'transform 0.05s linear' }}>
             <polygon points="0,-12 10,8 -10,8" fill="#c2410c" stroke="#fb923c" strokeWidth="1.5" />
             <rect x="-9" y="0" width="18" height="10" fill="#ea580c" rx="1" />
           </g>
         );
       default: // car
         return (
-          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
+          <g transform={transform} key={key} style={{ transition: 'transform 0.05s linear' }}>
             <rect x="-11" y="-18" width="22" height="36" rx="5" fill="#0284c7" stroke="#38bdf8" strokeWidth="1.5" />
             <rect x="-8" y="-14" width="16" height="6" fill="#0f172a" rx="1" />
             <rect x="-8" y="8" width="16" height="4" fill="#0f172a" rx="1" />
@@ -235,14 +248,14 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             <span>{isEmergency ? '🚨 SIREN ON: URGENT EMERGENCY' : '🔔 SIREN OFF: ROUTINE MODE'}</span>
           </button>
 
-          {/* Speed Control Selector for Jury Presentation */}
+          {/* Speed Control Selector for Jury Presentation & High-FPS Refresh */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(15, 23, 42, 0.8)', padding: '0.25rem 0.5rem', borderRadius: '0.5rem', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-            <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, marginRight: '0.2rem' }}>Speed:</span>
+            <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, marginRight: '0.2rem' }}>Refresh Rate:</span>
             <button
-              onClick={() => setSpeedMultiplier(0.1)}
+              onClick={() => setSpeedMultiplier(0.3)}
               style={{
-                background: speedMultiplier === 0.1 ? 'var(--accent-cyan)' : 'transparent',
-                color: speedMultiplier === 0.1 ? '#090d16' : '#94a3b8',
+                background: speedMultiplier === 0.3 ? 'var(--accent-cyan)' : 'transparent',
+                color: speedMultiplier === 0.3 ? '#090d16' : '#94a3b8',
                 border: 'none',
                 borderRadius: '0.3rem',
                 padding: '0.2rem 0.5rem',
@@ -251,22 +264,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
                 cursor: 'pointer'
               }}
             >
-              🐢 Ultra-Slow (0.1x)
-            </button>
-            <button
-              onClick={() => setSpeedMultiplier(0.2)}
-              style={{
-                background: speedMultiplier === 0.2 ? 'var(--accent-cyan)' : 'transparent',
-                color: speedMultiplier === 0.2 ? '#090d16' : '#94a3b8',
-                border: 'none',
-                borderRadius: '0.3rem',
-                padding: '0.2rem 0.5rem',
-                fontSize: '0.75rem',
-                fontWeight: 800,
-                cursor: 'pointer'
-              }}
-            >
-              🚗 Pitch Mode (0.2x)
+              🚗 Pitch Mode (0.3x)
             </button>
             <button
               onClick={() => setSpeedMultiplier(0.5)}
@@ -281,7 +279,22 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
                 cursor: 'pointer'
               }}
             >
-              ⚡ Normal (0.5x)
+              ⚡ Fast 60FPS (0.5x)
+            </button>
+            <button
+              onClick={() => setSpeedMultiplier(1.0)}
+              style={{
+                background: speedMultiplier === 1.0 ? 'var(--accent-cyan)' : 'transparent',
+                color: speedMultiplier === 1.0 ? '#090d16' : '#94a3b8',
+                border: 'none',
+                borderRadius: '0.3rem',
+                padding: '0.2rem 0.5rem',
+                fontSize: '0.75rem',
+                fontWeight: 800,
+                cursor: 'pointer'
+              }}
+            >
+              🚀 Ultra-Fast (1.0x)
             </button>
           </div>
 
@@ -600,7 +613,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             const isSafeToWalk = !isNSGreen;
             const pX = isSafeToWalk ? 430 + ((i * 35 + simStep * pedSpeed) % 130) : 425;
             return (
-              <g key={`ped_n_${i}`} transform={`translate(${pX}, 170)`} style={{ transition: 'all 0.8s linear' }}>
+              <g key={`ped_n_${i}`} transform={`translate(${pX}, 170)`} style={{ transition: 'transform 0.05s linear' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
                 <circle cx="0" cy="-6" r="3" fill="#fbbf24" />
               </g>
@@ -612,7 +625,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             const isSafeToWalk = !isNSGreen;
             const pX = isSafeToWalk ? 570 - ((i * 35 + simStep * pedSpeed) % 130) : 575;
             return (
-              <g key={`ped_s_${i}`} transform={`translate(${pX}, 330)`} style={{ transition: 'all 0.8s linear' }}>
+              <g key={`ped_s_${i}`} transform={`translate(${pX}, 330)`} style={{ transition: 'transform 0.05s linear' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
                 <circle cx="0" cy="-6" r="3" fill="#fbbf24" />
               </g>
@@ -624,7 +637,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             const isSafeToWalk = !isEWGreen;
             const pY = isSafeToWalk ? 190 + ((i * 35 + simStep * pedSpeed) % 120) : 185;
             return (
-              <g key={`ped_e_${i}`} transform={`translate(590, ${pY})`} style={{ transition: 'all 0.8s linear' }}>
+              <g key={`ped_e_${i}`} transform={`translate(590, ${pY})`} style={{ transition: 'transform 0.05s linear' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
                 <circle cx="0" cy="-6" r="3" fill="#fbbf24" />
               </g>
@@ -636,7 +649,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             const isSafeToWalk = !isEWGreen;
             const pY = isSafeToWalk ? 310 - ((i * 35 + simStep * pedSpeed) % 120) : 315;
             return (
-              <g key={`ped_w_${i}`} transform={`translate(410, ${pY})`} style={{ transition: 'all 0.8s linear' }}>
+              <g key={`ped_w_${i}`} transform={`translate(410, ${pY})`} style={{ transition: 'transform 0.05s linear' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
                 <circle cx="0" cy="-6" r="3" fill="#fbbf24" />
               </g>

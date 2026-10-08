@@ -47,7 +47,7 @@ async def websocket_endpoint(websocket: WebSocket):
             # Advance 1 simulation step and broadcast payload
             step_payload = sim_service.process_step()
             await websocket.send_json(step_payload)
-            await asyncio.sleep(1.0)
+            await asyncio.sleep(0.2)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except Exception as e:

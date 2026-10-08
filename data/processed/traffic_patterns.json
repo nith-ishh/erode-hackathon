@@ -1,0 +1,35 @@
+{
+    "vehicle_mix": {
+        "car": 0.35,
+        "motorcycle": 0.4,
+        "bus": 0.05,
+        "truck": 0.05,
+        "auto": 0.15
+    },
+    "scenarios": {
+        "normal": {
+            "arrival_rate_veh_per_sec": 0.5,
+            "pedestrian_rate_per_sec": 0.1,
+            "emergency_probability": 0.02,
+            "description": "Standard off-peak urban Indian mixed traffic"
+        },
+        "rush_hour": {
+            "arrival_rate_veh_per_sec": 1.2,
+            "pedestrian_rate_per_sec": 0.3,
+            "emergency_probability": 0.05,
+            "description": "Peak morning/evening Indian urban rush-hour traffic"
+        },
+        "high_density": {
+            "arrival_rate_veh_per_sec": 1.8,
+            "pedestrian_rate_per_sec": 0.4,
+            "emergency_probability": 0.08,
+            "description": "Extreme saturation demand near capacity limits"
+        },
+        "incident": {
+            "arrival_rate_veh_per_sec": 0.8,
+            "pedestrian_rate_per_sec": 0.2,
+            "emergency_probability": 0.2,
+            "description": "Incident scenario with high emergency corridor demand and lane blockage"
+        }
+    }
+}

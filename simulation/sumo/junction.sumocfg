@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<configuration>
+  <input>
+    <net-file value="network/junction.net.xml"/>
+    <route-files value="routes/junction.rou.xml"/>
+    <additional-files value="routes/vtypes.add.xml"/>
+  </input>
+  <time>
+    <begin value="0"/>
+    <end value="3600"/>
+    <step-length value="1.0"/>
+  </time>
+  <report>
+    <no-step-log value="true"/>
+  </report>
+</configuration>

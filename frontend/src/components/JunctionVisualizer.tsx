@@ -47,7 +47,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
   const isEmergency = emergencyActive || localEmergency || stateData?.state?.emergency_present || false;
   const breakItActive = stateData?.safety_shield?.break_it_active || false;
   const fallbackActive = stateData?.safety_shield?.fallback_active || breakItActive;
-  const simStep = animTime * 3.5;
+  const simStep = animTime * 0.5;
 
   const handleTriggerAmbulanceClick = () => {
     if (onToggleEmergency) {
@@ -57,9 +57,9 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
     }
   };
 
-  // Base Speed formulas: Ultra-slow, calm presentation speed so all vehicles move very slowly
-  const flowSpeed = 0.25 * speedMultiplier;
-  const pedSpeed = 0.12 * speedMultiplier;
+  // Base Speed formulas: Ultra-slow, super-calm crawl presentation speed so all vehicles move very slowly
+  const flowSpeed = 0.08 * speedMultiplier;
+  const pedSpeed = 0.04 * speedMultiplier;
 
   // Distinct Realistic Speed Multipliers per Vehicle Category:
   // - motorcycle: 1.35x (nimble, fast 2-wheeler)

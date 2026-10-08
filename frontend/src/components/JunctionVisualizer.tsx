@@ -30,17 +30,6 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
   const isEWGreen = finalPhase === 2;
   const isEWYellow = finalPhase === 3;
 
-  const getSignalColor = (isNS: boolean) => {
-    if (isNS) {
-      if (isNSGreen) return '#22c55e';
-      if (isNSYellow) return '#eab308';
-      return '#ef4444';
-    } else {
-      if (isEWGreen) return '#22c55e';
-      if (isEWYellow) return '#eab308';
-      return '#ef4444';
-    }
-  };
 
   // Helper to get vehicle list for an approach
   const getVehiclesForApproach = (appKey: string) => {
@@ -253,105 +242,160 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             <rect key={`e_cw_${i}`} x="583" y={185 + i * 14} width="14" height="8" fill="rgba(255, 255, 255, 0.7)" rx="1" />
           ))}
 
-          {/* Traffic Light Posts & Glowing Indicators */}
-          {/* North Signal Light (governing North approach heading South) */}
-          <g>
-            <circle cx="395" cy="140" r="14" fill="#0f172a" stroke="#334155" strokeWidth="2" />
-            <circle cx="395" cy="140" r="9" fill={getSignalColor(true)}>
-              <animate attributeName="r" values="9;11;9" dur="1.2s" repeatCount="indefinite" />
-            </circle>
-            <text x="395" y="120" textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight="700">NORTH SIG</text>
+          {/* ========================================================================= */}
+          {/* 1. REALISTIC 3-LENS VEHICLE TRAFFIC LIGHT HEADS (NORTH, SOUTH, EAST, WEST) */}
+          {/* ========================================================================= */}
+
+          {/* NORTH VEHICLE SIGNAL (at X=355, Y=90) */}
+          <g transform="translate(355, 90)">
+            <rect x="-14" y="-35" width="28" height="70" rx="6" fill="#0b1120" stroke="#475569" strokeWidth="2" />
+            {/* Red Lens */}
+            <circle cx="0" cy="-22" r="7" fill={!isNSGreen && !isNSYellow ? "#ef4444" : "#331111"} />
+            {!isNSGreen && !isNSYellow && <circle cx="0" cy="-22" r="9" fill="none" stroke="#ef4444" strokeWidth="1.5" opacity="0.8" />}
+            {/* Yellow Lens */}
+            <circle cx="0" cy="0" r="7" fill={isNSYellow ? "#eab308" : "#332805"} />
+            {isNSYellow && <circle cx="0" cy="0" r="9" fill="none" stroke="#eab308" strokeWidth="1.5" opacity="0.8" />}
+            {/* Green Lens */}
+            <circle cx="0" cy="22" r="7" fill={isNSGreen ? "#22c55e" : "#052e16"} />
+            {isNSGreen && <circle cx="0" cy="22" r="9" fill="none" stroke="#22c55e" strokeWidth="1.5" opacity="0.8"><animate attributeName="r" values="9;11;9" dur="1.2s" repeatCount="indefinite" /></circle>}
+            <text x="0" y="-42" textAnchor="middle" fill="#38bdf8" fontSize="9" fontWeight="800" letterSpacing="0.5">NORTH SIGNAL</text>
+            <text x="0" y="48" textAnchor="middle" fill={isNSGreen ? "#22c55e" : isNSYellow ? "#eab308" : "#ef4444"} fontSize="8.5" fontWeight="900">
+              {isNSGreen ? "GREEN" : isNSYellow ? "YELLOW" : "RED"}
+            </text>
           </g>
 
-          {/* South Signal Light (governing South approach heading North) */}
-          <g>
-            <circle cx="605" cy="360" r="14" fill="#0f172a" stroke="#334155" strokeWidth="2" />
-            <circle cx="605" cy="360" r="9" fill={getSignalColor(true)}>
-              <animate attributeName="r" values="9;11;9" dur="1.2s" repeatCount="indefinite" />
-            </circle>
-            <text x="605" y="385" textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight="700">SOUTH SIG</text>
+          {/* SOUTH VEHICLE SIGNAL (at X=645, Y=410) */}
+          <g transform="translate(645, 410)">
+            <rect x="-14" y="-35" width="28" height="70" rx="6" fill="#0b1120" stroke="#475569" strokeWidth="2" />
+            {/* Red Lens */}
+            <circle cx="0" cy="-22" r="7" fill={!isNSGreen && !isNSYellow ? "#ef4444" : "#331111"} />
+            {!isNSGreen && !isNSYellow && <circle cx="0" cy="-22" r="9" fill="none" stroke="#ef4444" strokeWidth="1.5" opacity="0.8" />}
+            {/* Yellow Lens */}
+            <circle cx="0" cy="0" r="7" fill={isNSYellow ? "#eab308" : "#332805"} />
+            {isNSYellow && <circle cx="0" cy="0" r="9" fill="none" stroke="#eab308" strokeWidth="1.5" opacity="0.8" />}
+            {/* Green Lens */}
+            <circle cx="0" cy="22" r="7" fill={isNSGreen ? "#22c55e" : "#052e16"} />
+            {isNSGreen && <circle cx="0" cy="22" r="9" fill="none" stroke="#22c55e" strokeWidth="1.5" opacity="0.8"><animate attributeName="r" values="9;11;9" dur="1.2s" repeatCount="indefinite" /></circle>}
+            <text x="0" y="-42" textAnchor="middle" fill="#38bdf8" fontSize="9" fontWeight="800" letterSpacing="0.5">SOUTH SIGNAL</text>
+            <text x="0" y="48" textAnchor="middle" fill={isNSGreen ? "#22c55e" : isNSYellow ? "#eab308" : "#ef4444"} fontSize="8.5" fontWeight="900">
+              {isNSGreen ? "GREEN" : isNSYellow ? "YELLOW" : "RED"}
+            </text>
           </g>
 
-          {/* East Signal Light (governing East approach heading West) */}
-          <g>
-            <circle cx="620" cy="155" r="14" fill="#0f172a" stroke="#334155" strokeWidth="2" />
-            <circle cx="620" cy="155" r="9" fill={getSignalColor(false)}>
-              <animate attributeName="r" values="9;11;9" dur="1.2s" repeatCount="indefinite" />
-            </circle>
-            <text x="645" y="140" textAnchor="start" fill="#94a3b8" fontSize="10" fontWeight="700">EAST SIG</text>
+          {/* EAST VEHICLE SIGNAL (at X=660, Y=125) */}
+          <g transform="translate(660, 125)">
+            <rect x="-14" y="-35" width="28" height="70" rx="6" fill="#0b1120" stroke="#475569" strokeWidth="2" />
+            {/* Red Lens */}
+            <circle cx="0" cy="-22" r="7" fill={!isEWGreen && !isEWYellow ? "#ef4444" : "#331111"} />
+            {!isEWGreen && !isEWYellow && <circle cx="0" cy="-22" r="9" fill="none" stroke="#ef4444" strokeWidth="1.5" opacity="0.8" />}
+            {/* Yellow Lens */}
+            <circle cx="0" cy="0" r="7" fill={isEWYellow ? "#eab308" : "#332805"} />
+            {isEWYellow && <circle cx="0" cy="0" r="9" fill="none" stroke="#eab308" strokeWidth="1.5" opacity="0.8" />}
+            {/* Green Lens */}
+            <circle cx="0" cy="22" r="7" fill={isEWGreen ? "#22c55e" : "#052e16"} />
+            {isEWGreen && <circle cx="0" cy="22" r="9" fill="none" stroke="#22c55e" strokeWidth="1.5" opacity="0.8"><animate attributeName="r" values="9;11;9" dur="1.2s" repeatCount="indefinite" /></circle>}
+            <text x="0" y="-42" textAnchor="middle" fill="#38bdf8" fontSize="9" fontWeight="800" letterSpacing="0.5">EAST SIGNAL</text>
+            <text x="0" y="48" textAnchor="middle" fill={isEWGreen ? "#22c55e" : isEWYellow ? "#eab308" : "#ef4444"} fontSize="8.5" fontWeight="900">
+              {isEWGreen ? "GREEN" : isEWYellow ? "YELLOW" : "RED"}
+            </text>
           </g>
 
-          {/* West Signal Light (governing West approach heading East) */}
-          <g>
-            <circle cx="380" cy="345" r="14" fill="#0f172a" stroke="#334155" strokeWidth="2" />
-            <circle cx="380" cy="345" r="9" fill={getSignalColor(false)}>
-              <animate attributeName="r" values="9;11;9" dur="1.2s" repeatCount="indefinite" />
-            </circle>
-            <text x="355" y="365" textAnchor="end" fill="#94a3b8" fontSize="10" fontWeight="700">WEST SIG</text>
+          {/* WEST VEHICLE SIGNAL (at X=340, Y=375) */}
+          <g transform="translate(340, 375)">
+            <rect x="-14" y="-35" width="28" height="70" rx="6" fill="#0b1120" stroke="#475569" strokeWidth="2" />
+            {/* Red Lens */}
+            <circle cx="0" cy="-22" r="7" fill={!isEWGreen && !isEWYellow ? "#ef4444" : "#331111"} />
+            {!isEWGreen && !isEWYellow && <circle cx="0" cy="-22" r="9" fill="none" stroke="#ef4444" strokeWidth="1.5" opacity="0.8" />}
+            {/* Yellow Lens */}
+            <circle cx="0" cy="0" r="7" fill={isEWYellow ? "#eab308" : "#332805"} />
+            {isEWYellow && <circle cx="0" cy="0" r="9" fill="none" stroke="#eab308" strokeWidth="1.5" opacity="0.8" />}
+            {/* Green Lens */}
+            <circle cx="0" cy="22" r="7" fill={isEWGreen ? "#22c55e" : "#052e16"} />
+            {isEWGreen && <circle cx="0" cy="22" r="9" fill="none" stroke="#22c55e" strokeWidth="1.5" opacity="0.8"><animate attributeName="r" values="9;11;9" dur="1.2s" repeatCount="indefinite" /></circle>}
+            <text x="0" y="-42" textAnchor="middle" fill="#38bdf8" fontSize="9" fontWeight="800" letterSpacing="0.5">WEST SIGNAL</text>
+            <text x="0" y="48" textAnchor="middle" fill={isEWGreen ? "#22c55e" : isEWYellow ? "#eab308" : "#ef4444"} fontSize="8.5" fontWeight="900">
+              {isEWGreen ? "GREEN" : isEWYellow ? "YELLOW" : "RED"}
+            </text>
           </g>
 
           {/* ========================================================================= */}
-          {/* DEDICATED PEDESTRIAN WALK / STOP SIGNALS (SEPARATE SIGNALS FOR CROSSWALKS) */}
+          {/* 2. DEDICATED PEDESTRIAN WALK / STOP SIGNALS (ON SIDEWALK CURBS) */}
           {/* ========================================================================= */}
 
-          {/* North Crosswalk Pedestrian Signals (North & South road crossing) */}
-          <g transform="translate(378, 170)">
-            <rect x="-22" y="-10" width="44" height="20" rx="4" fill="#0f172a" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
-            <circle cx="-12" cy="0" r="4" fill={!isNSGreen ? "#22c55e" : "#ef4444"}>
+          {/* North Zebra Crosswalk Pedestrian Heads (West & East Curbs) */}
+          <g transform="translate(412, 170)">
+            <rect x="-10" y="-12" width="20" height="24" rx="3" fill="#030712" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="0" cy="-4" r="3.5" fill={!isNSGreen ? "#032e14" : "#ef4444"} />
+            <circle cx="0" cy="4" r="3.5" fill={!isNSGreen ? "#22c55e" : "#032e14"}>
               {!isNSGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
             </circle>
-            <text x="4" y="3.5" textAnchor="middle" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="8.5" fontWeight="900">{!isNSGreen ? "WALK" : "STOP"}</text>
-            <text x="0" y="18" textAnchor="middle" fill="#64748b" fontSize="7" fontWeight="700">PED N</text>
+            <text x="-16" y="3" textAnchor="end" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{!isNSGreen ? "WALK" : "STOP"}</text>
           </g>
 
-          <g transform="translate(622, 170)">
-            <rect x="-22" y="-10" width="44" height="20" rx="4" fill="#0f172a" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
-            <circle cx="-12" cy="0" r="4" fill={!isNSGreen ? "#22c55e" : "#ef4444"}>
+          <g transform="translate(588, 170)">
+            <rect x="-10" y="-12" width="20" height="24" rx="3" fill="#030712" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="0" cy="-4" r="3.5" fill={!isNSGreen ? "#032e14" : "#ef4444"} />
+            <circle cx="0" cy="4" r="3.5" fill={!isNSGreen ? "#22c55e" : "#032e14"}>
               {!isNSGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
             </circle>
-            <text x="4" y="3.5" textAnchor="middle" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="8.5" fontWeight="900">{!isNSGreen ? "WALK" : "STOP"}</text>
-            <text x="0" y="18" textAnchor="middle" fill="#64748b" fontSize="7" fontWeight="700">PED N</text>
+            <text x="16" y="3" textAnchor="start" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{!isNSGreen ? "WALK" : "STOP"}</text>
           </g>
 
-          {/* South Crosswalk Pedestrian Signals */}
-          <g transform="translate(378, 330)">
-            <rect x="-22" y="-10" width="44" height="20" rx="4" fill="#0f172a" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
-            <circle cx="-12" cy="0" r="4" fill={!isNSGreen ? "#22c55e" : "#ef4444"}>
+          {/* South Zebra Crosswalk Pedestrian Heads (West & East Curbs) */}
+          <g transform="translate(412, 330)">
+            <rect x="-10" y="-12" width="20" height="24" rx="3" fill="#030712" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="0" cy="-4" r="3.5" fill={!isNSGreen ? "#032e14" : "#ef4444"} />
+            <circle cx="0" cy="4" r="3.5" fill={!isNSGreen ? "#22c55e" : "#032e14"}>
               {!isNSGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
             </circle>
-            <text x="4" y="3.5" textAnchor="middle" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="8.5" fontWeight="900">{!isNSGreen ? "WALK" : "STOP"}</text>
-            <text x="0" y="18" textAnchor="middle" fill="#64748b" fontSize="7" fontWeight="700">PED S</text>
+            <text x="-16" y="3" textAnchor="end" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{!isNSGreen ? "WALK" : "STOP"}</text>
           </g>
 
-          <g transform="translate(622, 330)">
-            <rect x="-22" y="-10" width="44" height="20" rx="4" fill="#0f172a" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
-            <circle cx="-12" cy="0" r="4" fill={!isNSGreen ? "#22c55e" : "#ef4444"}>
+          <g transform="translate(588, 330)">
+            <rect x="-10" y="-12" width="20" height="24" rx="3" fill="#030712" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="0" cy="-4" r="3.5" fill={!isNSGreen ? "#032e14" : "#ef4444"} />
+            <circle cx="0" cy="4" r="3.5" fill={!isNSGreen ? "#22c55e" : "#032e14"}>
               {!isNSGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
             </circle>
-            <text x="4" y="3.5" textAnchor="middle" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="8.5" fontWeight="900">{!isNSGreen ? "WALK" : "STOP"}</text>
-            <text x="0" y="18" textAnchor="middle" fill="#64748b" fontSize="7" fontWeight="700">PED S</text>
+            <text x="16" y="3" textAnchor="start" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{!isNSGreen ? "WALK" : "STOP"}</text>
           </g>
 
-          {/* West Crosswalk Pedestrian Signals */}
-          <g transform="translate(403, 142)">
-            <rect x="-20" y="-8" width="40" height="16" rx="3" fill="#0f172a" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
-            <text x="0" y="3.5" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="7.5" fontWeight="900">{!isEWGreen ? "🚶 WALK" : "✋ STOP"}</text>
+          {/* West Zebra Crosswalk Pedestrian Heads (North & South Curbs) */}
+          <g transform="translate(400, 168)">
+            <rect x="-12" y="-10" width="24" height="20" rx="3" fill="#030712" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="-4" cy="0" r="3.5" fill={!isEWGreen ? "#032e14" : "#ef4444"} />
+            <circle cx="4" cy="0" r="3.5" fill={!isEWGreen ? "#22c55e" : "#032e14"}>
+              {!isEWGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
+            </circle>
+            <text x="0" y="-14" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{!isEWGreen ? "WALK" : "STOP"}</text>
           </g>
 
-          <g transform="translate(403, 358)">
-            <rect x="-20" y="-8" width="40" height="16" rx="3" fill="#0f172a" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
-            <text x="0" y="3.5" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="7.5" fontWeight="900">{!isEWGreen ? "🚶 WALK" : "✋ STOP"}</text>
+          <g transform="translate(400, 332)">
+            <rect x="-12" y="-10" width="24" height="20" rx="3" fill="#030712" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="-4" cy="0" r="3.5" fill={!isEWGreen ? "#032e14" : "#ef4444"} />
+            <circle cx="4" cy="0" r="3.5" fill={!isEWGreen ? "#22c55e" : "#032e14"}>
+              {!isEWGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
+            </circle>
+            <text x="0" y="22" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{!isEWGreen ? "WALK" : "STOP"}</text>
           </g>
 
-          {/* East Crosswalk Pedestrian Signals */}
-          <g transform="translate(597, 142)">
-            <rect x="-20" y="-8" width="40" height="16" rx="3" fill="#0f172a" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
-            <text x="0" y="3.5" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="7.5" fontWeight="900">{!isEWGreen ? "🚶 WALK" : "✋ STOP"}</text>
+          {/* East Zebra Crosswalk Pedestrian Heads (North & South Curbs) */}
+          <g transform="translate(600, 168)">
+            <rect x="-12" y="-10" width="24" height="20" rx="3" fill="#030712" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="-4" cy="0" r="3.5" fill={!isEWGreen ? "#032e14" : "#ef4444"} />
+            <circle cx="4" cy="0" r="3.5" fill={!isEWGreen ? "#22c55e" : "#032e14"}>
+              {!isEWGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
+            </circle>
+            <text x="0" y="-14" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{!isEWGreen ? "WALK" : "STOP"}</text>
           </g>
 
-          <g transform="translate(597, 358)">
-            <rect x="-20" y="-8" width="40" height="16" rx="3" fill="#0f172a" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
-            <text x="0" y="3.5" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="7.5" fontWeight="900">{!isEWGreen ? "🚶 WALK" : "✋ STOP"}</text>
+          <g transform="translate(600, 332)">
+            <rect x="-12" y="-10" width="24" height="20" rx="3" fill="#030712" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="-4" cy="0" r="3.5" fill={!isEWGreen ? "#032e14" : "#ef4444"} />
+            <circle cx="4" cy="0" r="3.5" fill={!isEWGreen ? "#22c55e" : "#032e14"}>
+              {!isEWGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
+            </circle>
+            <text x="0" y="22" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{!isEWGreen ? "WALK" : "STOP"}</text>
           </g>
 
 

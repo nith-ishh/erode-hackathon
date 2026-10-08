@@ -25,7 +25,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
   emergencyActive = false,
   onToggleEmergency
 }) => {
-  const [speedMultiplier, setSpeedMultiplier] = useState<number>(0.1); // Super slow default mode
+  const [speedMultiplier, setSpeedMultiplier] = useState<number>(0.025); // Very very slow speed
   const [localEmergency, setLocalEmergency] = useState<boolean>(false);
   const [animTime, setAnimTime] = useState<number>(0);
 
@@ -57,9 +57,9 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
     }
   };
 
-  // Base Speed formulas: Ultra-calm presentation speed so vehicles never zoom or run too fast
-  const flowSpeed = 1.2 * speedMultiplier;
-  const pedSpeed = 0.8 * speedMultiplier;
+  // Base Speed formulas: Ultra-calm presentation speed so vehicles move very very slowly
+  const flowSpeed = 0.8 * speedMultiplier;
+  const pedSpeed = 0.4 * speedMultiplier;
 
   // Distinct Realistic Speed Multipliers per Vehicle Category:
   // - motorcycle: 1.3x (nimble 2-wheeler)
@@ -67,10 +67,10 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
   // - auto: 0.8x (medium auto-rickshaw speed)
   // - bus: 0.65x (heavy passenger bus)
   // - truck: 0.5x (heavy cargo truck)
-  // - emergency (siren ON): 2.2x (priority emergency corridor pass, NEVER STOPS)
+  // - emergency (siren ON): 2.5x (priority emergency corridor pass, NEVER STOPS)
   const getSpeedForVType = (vtype: string, sirenOn: boolean) => {
     if (vtype === 'emergency') {
-      return sirenOn ? flowSpeed * 2.2 : flowSpeed * 1.0;
+      return sirenOn ? flowSpeed * 2.5 : flowSpeed * 1.0;
     }
     switch (vtype) {
       case 'motorcycle':
@@ -277,14 +277,14 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             <span>{isEmergency ? '🚨 SIREN ON: URGENT EMERGENCY' : '🔔 SIREN OFF: ROUTINE MODE'}</span>
           </button>
 
-          {/* Speed Control Selector (0.1x, 0.25x, 0.5x) */}
+          {/* Speed Control Selector (0.01x, 0.025x, 0.05x) */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(15, 23, 42, 0.8)', padding: '0.25rem 0.5rem', borderRadius: '0.5rem', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
             <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, marginRight: '0.2rem' }}>Speed:</span>
             <button
-              onClick={() => setSpeedMultiplier(0.1)}
+              onClick={() => setSpeedMultiplier(0.01)}
               style={{
-                background: speedMultiplier === 0.1 ? 'var(--accent-cyan)' : 'transparent',
-                color: speedMultiplier === 0.1 ? '#090d16' : '#94a3b8',
+                background: speedMultiplier === 0.01 ? 'var(--accent-cyan)' : 'transparent',
+                color: speedMultiplier === 0.01 ? '#090d16' : '#94a3b8',
                 border: 'none',
                 borderRadius: '0.3rem',
                 padding: '0.25rem 0.6rem',
@@ -293,13 +293,13 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
                 cursor: 'pointer'
               }}
             >
-              🐌 0.1x (Super Slow)
+              🐌 0.01x (Super Crawl)
             </button>
             <button
-              onClick={() => setSpeedMultiplier(0.25)}
+              onClick={() => setSpeedMultiplier(0.025)}
               style={{
-                background: speedMultiplier === 0.25 ? 'var(--accent-cyan)' : 'transparent',
-                color: speedMultiplier === 0.25 ? '#090d16' : '#94a3b8',
+                background: speedMultiplier === 0.025 ? 'var(--accent-cyan)' : 'transparent',
+                color: speedMultiplier === 0.025 ? '#090d16' : '#94a3b8',
                 border: 'none',
                 borderRadius: '0.3rem',
                 padding: '0.25rem 0.6rem',
@@ -308,13 +308,13 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
                 cursor: 'pointer'
               }}
             >
-              🐢 0.25x (Ultra Calm)
+              🐢 0.025x (Very Very Slow)
             </button>
             <button
-              onClick={() => setSpeedMultiplier(0.5)}
+              onClick={() => setSpeedMultiplier(0.05)}
               style={{
-                background: speedMultiplier === 0.5 ? 'var(--accent-cyan)' : 'transparent',
-                color: speedMultiplier === 0.5 ? '#090d16' : '#94a3b8',
+                background: speedMultiplier === 0.05 ? 'var(--accent-cyan)' : 'transparent',
+                color: speedMultiplier === 0.05 ? '#090d16' : '#94a3b8',
                 border: 'none',
                 borderRadius: '0.3rem',
                 padding: '0.25rem 0.6rem',
@@ -323,7 +323,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
                 cursor: 'pointer'
               }}
             >
-              🚗 0.5x (Slow)
+              🚗 0.05x (Slow Crawl)
             </button>
           </div>
 

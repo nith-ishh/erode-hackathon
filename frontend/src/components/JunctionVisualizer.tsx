@@ -490,66 +490,74 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           {/* DYNAMICALLY ANIMATED DRIVING VEHICLES (ADAPTIVE TRAFFIC SIGNAL RULES) */}
           {/* ========================================================================= */}
 
-          {/* NORTH INBOUND VEHICLES (Heading South) */}
+          {/* NORTH INBOUND VEHICLES (Heading South: Y=0 -> Y=500, Rot=180°) */}
           {northVehicles.map((vtype, idx) => {
             const laneX = idx % 2 === 0 ? 460 : 485;
+            const queueRank = Math.floor(idx / 2);
             const speedFact = vtype === 'motorcycle' ? 1.25 : vtype === 'bus' || vtype === 'truck' ? 0.85 : 1.0;
-            const stopLineY = 130 - Math.floor(idx / 2) * 55;
+            const stopLineY = 125 - queueRank * 68; // Guaranteed 68px gap to prevent vehicle overlaps
+            const dist = (simStep * flowSpeed * speedFact + queueRank * 70) % 650;
             let vehY: number;
+
             if (isNSGreen) {
-              const startOffset = -30 + idx * 45;
-              vehY = ((startOffset + simStep * flowSpeed * speedFact) % 540) - 20;
+              vehY = dist - 50; // Flow forward through green light
             } else {
-              const rawY = (( -30 + idx * 45 + simStep * flowSpeed * speedFact) % 540) - 20;
-              vehY = (rawY > 0 && rawY < stopLineY) ? rawY : stopLineY;
+              const rawY = dist - 50;
+              vehY = (rawY < stopLineY && rawY > -40) ? rawY : stopLineY;
             }
             return renderVehicleSVG(vtype, laneX, vehY, 180, `n_v_${idx}`);
           })}
 
-          {/* SOUTH INBOUND VEHICLES (Heading North) */}
+          {/* SOUTH INBOUND VEHICLES (Heading North: Y=500 -> Y=0, Rot=0°) */}
           {southVehicles.map((vtype, idx) => {
             const laneX = idx % 2 === 0 ? 515 : 540;
+            const queueRank = Math.floor(idx / 2);
             const speedFact = vtype === 'motorcycle' ? 1.25 : vtype === 'bus' || vtype === 'truck' ? 0.85 : 1.0;
-            const stopLineY = 370 + Math.floor(idx / 2) * 55;
+            const stopLineY = 355 + queueRank * 68;
+            const dist = (simStep * flowSpeed * speedFact + queueRank * 70) % 650;
             let vehY: number;
+
             if (isNSGreen) {
-              const startOffset = -30 + idx * 45;
-              vehY = 520 - ((startOffset + simStep * flowSpeed * speedFact) % 540);
+              vehY = 550 - dist;
             } else {
-              const rawY = 520 - (( -30 + idx * 45 + simStep * flowSpeed * speedFact) % 540);
-              vehY = (rawY < 500 && rawY > stopLineY) ? rawY : stopLineY;
+              const rawY = 550 - dist;
+              vehY = (rawY > stopLineY && rawY < 540) ? rawY : stopLineY;
             }
             return renderVehicleSVG(vtype, laneX, vehY, 0, `s_v_${idx}`);
           })}
 
-          {/* WEST INBOUND VEHICLES (Heading East) */}
+          {/* WEST INBOUND VEHICLES (Heading East: X=0 -> X=1000, Rot=90°) */}
           {westVehicles.map((vtype, idx) => {
             const laneY = idx % 2 === 0 ? 270 : 295;
+            const queueRank = Math.floor(idx / 2);
             const speedFact = vtype === 'motorcycle' ? 1.25 : vtype === 'bus' || vtype === 'truck' ? 0.85 : 1.0;
-            const stopLineX = 370 - Math.floor(idx / 2) * 55;
+            const stopLineX = 375 - queueRank * 68;
+            const dist = (simStep * flowSpeed * speedFact + queueRank * 70) % 1100;
             let vehX: number;
+
             if (isEWGreen) {
-              const startOffset = -30 + idx * 45;
-              vehX = ((startOffset + simStep * flowSpeed * speedFact) % 1040) - 20;
+              vehX = dist - 50;
             } else {
-              const rawX = (( -30 + idx * 45 + simStep * flowSpeed * speedFact) % 1040) - 20;
-              vehX = (rawX > 0 && rawX < stopLineX) ? rawX : stopLineX;
+              const rawX = dist - 50;
+              vehX = (rawX < stopLineX && rawX > -40) ? rawX : stopLineX;
             }
             return renderVehicleSVG(vtype, vehX, laneY, 90, `w_v_${idx}`);
           })}
 
-          {/* EAST INBOUND VEHICLES (Heading West) */}
+          {/* EAST INBOUND VEHICLES (Heading West: X=1000 -> X=0, Rot=270°) */}
           {eastVehicles.map((vtype, idx) => {
             const laneY = idx % 2 === 0 ? 205 : 230;
+            const queueRank = Math.floor(idx / 2);
             const speedFact = vtype === 'motorcycle' ? 1.25 : vtype === 'bus' || vtype === 'truck' ? 0.85 : 1.0;
-            const stopLineX = 630 + Math.floor(idx / 2) * 55;
+            const stopLineX = 625 + queueRank * 68;
+            const dist = (simStep * flowSpeed * speedFact + queueRank * 70) % 1100;
             let vehX: number;
+
             if (isEWGreen) {
-              const startOffset = -30 + idx * 45;
-              vehX = 1020 - ((startOffset + simStep * flowSpeed * speedFact) % 1040);
+              vehX = 1050 - dist;
             } else {
-              const rawX = 1020 - (( -30 + idx * 45 + simStep * flowSpeed * speedFact) % 1040);
-              vehX = (rawX < 1000 && rawX > stopLineX) ? rawX : stopLineX;
+              const rawX = 1050 - dist;
+              vehX = (rawX > stopLineX && rawX < 1040) ? rawX : stopLineX;
             }
             return renderVehicleSVG(vtype, vehX, laneY, 270, `e_v_${idx}`);
           })}
@@ -558,48 +566,48 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           {/* ANIMATED PEDESTRIANS WALKING ON SAFE CROSSWALKS */}
           {/* ========================================================================= */}
 
-          {/* North Crosswalk Pedestrians (Walks at calm presentation pace when NS Signal is RED) */}
+          {/* North Crosswalk Pedestrians */}
           {[...Array(approaches.N?.pedestrians_waiting || 3)].map((_, i) => {
             const isSafeToWalk = !isNSGreen;
-            const pX = isSafeToWalk ? 430 + ((i * 35 + simStep * pedSpeed) % 130) : 425;
+            const pX = isSafeToWalk ? 430 + ((i * 35 + simStep * pedSpeed * 10) % 130) : 425;
             return (
-              <g key={`ped_n_${i}`} transform={`translate(${pX}, 170)`} style={{ transition: 'all 0.8s linear' }}>
+              <g key={`ped_n_${i}`} transform={`translate(${pX}, 170)`} style={{ transition: 'transform 0.05s linear' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
                 <circle cx="0" cy="-6" r="3" fill="#fbbf24" />
               </g>
             );
           })}
 
-          {/* South Crosswalk Pedestrians (Walks at calm presentation pace when NS Signal is RED) */}
+          {/* South Crosswalk Pedestrians */}
           {[...Array(approaches.S?.pedestrians_waiting || 3)].map((_, i) => {
             const isSafeToWalk = !isNSGreen;
-            const pX = isSafeToWalk ? 570 - ((i * 35 + simStep * pedSpeed) % 130) : 575;
+            const pX = isSafeToWalk ? 570 - ((i * 35 + simStep * pedSpeed * 10) % 130) : 575;
             return (
-              <g key={`ped_s_${i}`} transform={`translate(${pX}, 330)`} style={{ transition: 'all 0.8s linear' }}>
+              <g key={`ped_s_${i}`} transform={`translate(${pX}, 330)`} style={{ transition: 'transform 0.05s linear' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
                 <circle cx="0" cy="-6" r="3" fill="#fbbf24" />
               </g>
             );
           })}
 
-          {/* East Crosswalk Pedestrians (Walks at calm presentation pace when EW Signal is RED) */}
+          {/* East Crosswalk Pedestrians */}
           {[...Array(approaches.E?.pedestrians_waiting || 2)].map((_, i) => {
             const isSafeToWalk = !isEWGreen;
-            const pY = isSafeToWalk ? 190 + ((i * 35 + simStep * pedSpeed) % 120) : 185;
+            const pY = isSafeToWalk ? 190 + ((i * 35 + simStep * pedSpeed * 10) % 120) : 185;
             return (
-              <g key={`ped_e_${i}`} transform={`translate(590, ${pY})`} style={{ transition: 'all 0.8s linear' }}>
+              <g key={`ped_e_${i}`} transform={`translate(590, ${pY})`} style={{ transition: 'transform 0.05s linear' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
                 <circle cx="0" cy="-6" r="3" fill="#fbbf24" />
               </g>
             );
           })}
 
-          {/* West Crosswalk Pedestrians (Walks at calm presentation pace when EW Signal is RED) */}
+          {/* West Crosswalk Pedestrians */}
           {[...Array(approaches.W?.pedestrians_waiting || 2)].map((_, i) => {
             const isSafeToWalk = !isEWGreen;
-            const pY = isSafeToWalk ? 310 - ((i * 35 + simStep * pedSpeed) % 120) : 315;
+            const pY = isSafeToWalk ? 310 - ((i * 35 + simStep * pedSpeed * 10) % 120) : 315;
             return (
-              <g key={`ped_w_${i}`} transform={`translate(410, ${pY})`} style={{ transition: 'all 0.8s linear' }}>
+              <g key={`ped_w_${i}`} transform={`translate(410, ${pY})`} style={{ transition: 'transform 0.05s linear' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
                 <circle cx="0" cy="-6" r="3" fill="#fbbf24" />
               </g>

@@ -152,7 +152,17 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-## ⚠️ Important Limitations & Disclaimer
-- **Simulation-Based**: Evaluated inside SUMO simulation using calibrated Delhi traffic density profiles.
-- **Scope**: Single primary 4-way junction with 3-junction coordinated corridor abstraction.
-- **Field Validation**: Real-world deployment requires integration with physical traffic controllers and hardware sensor calibration.
+## 📘 Master Working Flow Blueprint & Synchronization Guarantee
+
+### 1. Continuous Cycle:
+$$\text{Detect Traffic} \rightarrow \text{Analyse Vehicles} \rightarrow \text{AI Decision} \rightarrow \text{Safety Shield} \rightarrow \text{Control Signal} \rightarrow \text{Move Vehicles/Peds} \rightarrow \text{Measure Performance} \rightarrow \text{Repeat}$$
+
+### 2. The 3-Way Synchronization Core:
+1. **AI Decision**: What the PPO RL Agent + JEV proposes based on 18-dim PCU state.
+2. **Actual Traffic Signal**: What the Safety Shield validates and TraCI controller applies.
+3. **Vehicle & Pedestrian Movement**: What vehicles (N, S, E, W) and pedestrians actually execute in the 2D Digital Twin.
+
+### 3. Special Handling:
+- **5-Second Pedestrian Window**: Dedicated 5s WALK crossing during phase transitions, then switches to STOP so normal AI traffic resumes.
+- **Ambulance Emergency Corridor**: Priority pre-emption cascading across $J_1 \rightarrow J_2 \rightarrow J_3$ green wave without gridlocking surrounding traffic.
+- **Fixed-Time Baseline Twin**: Parallel simulation comparing delay, queue length, and throughput to prove AI efficacy empirically.

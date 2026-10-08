@@ -543,17 +543,21 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
 
           {/* NORTH INBOUND VEHICLES (Heading South) */}
           {northVehicles.map((vtype, idx) => {
-            // ALGORITHM: Give-Way Lane Shifting & Fast Emergency Pass
+            // ALGORITHM: Give-Way Lane Shifting & Continuous Emergency Corridor Pass
             const isAmbulance = vtype === 'emergency';
             const laneX = isEmergency ? (isAmbulance ? 448 : 485) : (idx % 2 === 0 ? 460 : 485);
             let vehY: number;
-            if (isNSGreen) {
-              // Ambulance zooms FASTLY (4.5x speed) ONLY when triggered (siren ON), otherwise same speed as all other vehicles
-              const currentSpeed = (isAmbulance && isEmergency) ? flowSpeed * 4.5 : flowSpeed;
+
+            // Siren ON: Ambulance NEVER stops anywhere on the road, drives continuously!
+            const movesContinuously = (isAmbulance && isEmergency) || isNSGreen;
+
+            if (movesContinuously) {
+              // High-speed emergency pass when siren ON (3.5x speed multiplier), continuous motion
+              const currentSpeed = (isAmbulance && isEmergency) ? flowSpeed * 3.5 : flowSpeed;
               const startOffset = -30 + idx * 45;
               vehY = ((startOffset + simStep * currentSpeed) % 540) - 20;
             } else {
-              // RED SIGNAL: Queue up SAFELY behind Stopline Y=160
+              // RED SIGNAL for standard vehicles: Queue up SAFELY behind Stopline Y=160
               vehY = 130 - Math.floor(idx / 2) * 55;
             }
             return renderVehicleSVG(vtype, laneX, vehY, 180, `n_v_${idx}`);

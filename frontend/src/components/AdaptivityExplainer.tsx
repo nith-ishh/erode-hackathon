@@ -1,5 +1,5 @@
 import React from 'react';
-import { GitCompare, ArrowRight, Activity, CheckCircle2, TrendingUp, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 
 interface AdaptivityExplainerProps {
   adaptivityProof?: any;
@@ -11,7 +11,6 @@ export const AdaptivityExplainer: React.FC<AdaptivityExplainerProps> = ({ adapti
   const n_pcu = (approaches?.N?.pcu_queue || 0) + (approaches?.S?.pcu_queue || 0);
   const ew_pcu = (approaches?.E?.pcu_queue || 0) + (approaches?.W?.pcu_queue || 0);
   const ppoAction = stateData?.ppo_action ?? 0;
-  const currentPhase = stateData?.final_phase ?? 0;
 
   const proof = adaptivityProof || {
     before: { ns_queue: 5.2, ew_queue: 22.4, phase: 2, action: "HOLD" },

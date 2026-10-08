@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cpu, Clock, ShieldCheck, CheckCircle2, AlertCircle, Zap, Eye, EyeOff } from 'lucide-react';
+import { Cpu, Clock, Zap, Eye, EyeOff } from 'lucide-react';
 
 interface AdaptiveVsFixedPanelProps {
   stateData: any;

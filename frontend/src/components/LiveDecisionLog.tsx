@@ -1,5 +1,5 @@
 import React from 'react';
-import { Terminal, Shield, CheckCircle, Clock } from 'lucide-react';
+import { Terminal } from 'lucide-react';
 
 interface LiveDecisionLogProps {
   logs?: any[];

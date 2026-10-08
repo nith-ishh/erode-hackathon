@@ -25,6 +25,7 @@ from decision.fallback_controller import FallbackController
 from decision.explain_engine import ExplainEngine
 from emergency.emergency_detector import EmergencyDetector
 from emergency.green_wave import GreenWaveCoordinator
+from emergency.ambulance_manager import AmbulanceManager
 from counterfactual.comparison import CounterfactualTwinRunner
 from backend.app.database.db import TrafficDatabase
 from scripts.generate_demand import generate_route_file
@@ -55,6 +56,7 @@ class SimulationService:
         self.explain_engine = ExplainEngine()
         self.emergency_detector = EmergencyDetector()
         self.green_wave = GreenWaveCoordinator()
+        self.ambulance_mgr = AmbulanceManager()
         self.counterfactual_runner = CounterfactualTwinRunner()
         self.db = TrafficDatabase()
 
@@ -173,12 +175,47 @@ class SimulationService:
         print(f"[Sim Service] Traffic Surge: {msg}")
         return {"status": "success", "direction": direction, "message": msg}
 
+    def spawn_ambulance(self, origin: str = "N", destination: str = "S", vehicle_id: str = "ambulance_108") -> Dict[str, Any]:
+        """Spawns interactive ambulance in simulation."""
+        sim_time = round(self.step_count * 1.0, 1)
+        return self.ambulance_mgr.spawn_ambulance(
+            origin=origin,
+            destination=destination,
+            vehicle_id=vehicle_id,
+            sim_time=sim_time,
+            traci_instance=traci if (self.controller.is_connected and TRACI_AVAILABLE) else None
+        )
+
+    def set_ambulance_siren(self, siren_on: bool) -> Dict[str, Any]:
+        """Toggles ambulance siren ON or OFF with safe clearance."""
+        sim_time = round(self.step_count * 1.0, 1)
+        return self.ambulance_mgr.set_siren(siren_on, sim_time=sim_time)
+
+    def cancel_ambulance_emergency(self) -> Dict[str, Any]:
+        """Cancels active ambulance mission and releases emergency signal pre-emption."""
+        sim_time = round(self.step_count * 1.0, 1)
+        return self.ambulance_mgr.cancel_emergency(sim_time=sim_time)
+
+    def get_ambulance_status(self) -> Dict[str, Any]:
+        """Returns live status of ambulance and siren state machine."""
+        sim_time = round(self.step_count * 1.0, 1)
+        return self.ambulance_mgr.get_status(sim_time=sim_time)
+
     def process_step(self) -> Dict[str, Any]:
         """Advance single step in simulation and run full AI vs Fixed-Time closed-loop pipeline."""
         self.step_count += 1
         sim_time = round(self.step_count * 1.0, 1)
+        cur_phase = self.controller.current_phase
 
-        # 1. Extract raw traffic state from SUMO TraCI or calibrated simulation
+        # 1. Update interactive ambulance state machine
+        amb_status = self.ambulance_mgr.update_step(
+            self.step_count,
+            sim_time,
+            cur_phase,
+            traci if (self.controller.is_connected and TRACI_AVAILABLE) else None
+        )
+
+        # 2. Extract raw traffic state from SUMO TraCI or calibrated simulation
         if self.controller.is_connected and TRACI_AVAILABLE and traci is not None:
             raw_state = self.extractor.extract_state_traci(traci, label="service_main")
         else:
@@ -196,16 +233,26 @@ class SimulationService:
             self.surge_ew = max(0.0, self.surge_ew - 0.5)
 
         raw_state["timestamp"] = sim_time
-        cur_phase = self.controller.current_phase
         raw_state["current_phase"] = cur_phase
 
-        if self.emergency_trigger:
+        # Inject ambulance state details
+        if amb_status["active"]:
+            raw_state["emergency_present"] = True
+            raw_state["emergency_details"] = [{
+                "id": amb_status["vehicle_id"] or "ambulance_108",
+                "edge": amb_status["current_edge"],
+                "position": amb_status["position_m"],
+                "speed": amb_status["speed_mps"],
+                "siren_active": amb_status["siren_active"]
+            }]
+        elif self.emergency_trigger:
             raw_state["emergency_present"] = True
             raw_state["emergency_details"] = [{
                 "id": "emergency_ambulance_1",
                 "edge": "N2J1",
                 "position": 180.0,
-                "speed": 16.5
+                "speed": 16.5,
+                "siren_active": True
             }]
 
         # 2. Emergency Detection & Green Wave Coordination
@@ -371,6 +418,7 @@ class SimulationService:
                 "detection": em_info,
                 "green_wave": green_wave_plan
             },
+            "ambulance": amb_status,
             # Dual Controller Real-Time Comparison (Adaptive vs Fixed-Time)
             "dual_controller": {
                 "adaptive_ai": {

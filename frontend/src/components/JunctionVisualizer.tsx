@@ -15,11 +15,13 @@ interface ApproachData {
 interface JunctionVisualizerProps {
   stateData: any;
   finalPhase: number;
+  emergencyActive?: boolean;
+  onToggleEmergency?: () => void;
 }
 
-export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateData, finalPhase }) => {
+export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateData, finalPhase, emergencyActive, onToggleEmergency: _onToggleEmergency }) => {
   const approaches: Record<string, ApproachData> = stateData?.state?.approaches || {};
-  const isEmergency = stateData?.state?.emergency_present || false;
+  const isEmergency = emergencyActive || stateData?.state?.emergency_present || false;
   const breakItActive = stateData?.safety_shield?.break_it_active || false;
   const fallbackActive = stateData?.safety_shield?.fallback_active || breakItActive;
   const simStep = stateData?.step || 0;
@@ -71,6 +73,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
     switch (type) {
       case 'emergency':
         return (
+          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
             {/* 1. Large Pulsing Dual-Color Radiant Siren Halo (Blue on Left, Red on Right) */}
             <circle cx="-8" cy="-2" r="24" fill="#00e5ff" opacity="0.45">
               <animate attributeName="opacity" values="0.75;0.05;0.75" dur="0.3s" repeatCount="indefinite" />

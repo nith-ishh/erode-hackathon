@@ -50,15 +50,20 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
   // Combine backend step with continuous browser frame tick so movement is fluid and uninterrupted
   const simStep = rawStep * 5 + animFrame * 0.4;
 
-  // Speed formulas (ultra-smooth and calibrated for pitch demonstration)
-  const flowSpeed = 2.0 * speedMultiplier;
-  const pedSpeed = 0.8 * speedMultiplier;
+  // Speed formulas (calibrated for natural presentation movement)
+  const flowSpeed = 3.5 * speedMultiplier;
+  const pedSpeed = 1.0 * speedMultiplier;
 
   // Signal phase status: 0/1 = NS Green/Yellow, 2/3 = EW Green/Yellow
-  const isNSGreen = finalPhase === 0;
-  const isNSYellow = finalPhase === 1;
-  const isEWGreen = finalPhase === 2;
-  const isEWYellow = finalPhase === 3;
+  // Respect backend AI state, or auto-cycle phase smoothly during standalone telemetry loops
+  const activePhase = (stateData?.final_phase !== undefined && stateData?.final_phase !== null)
+    ? stateData.final_phase
+    : (finalPhase !== undefined && finalPhase !== null ? finalPhase : Math.floor(simStep / 70) % 4);
+
+  const isNSGreen = activePhase === 0;
+  const isNSYellow = activePhase === 1;
+  const isEWGreen = activePhase === 2;
+  const isEWYellow = activePhase === 3;
 
 
   // Helper to get vehicle list for an approach with stable, non-changing vehicle types per slot index
@@ -487,14 +492,15 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           {/* NORTH INBOUND VEHICLES (Heading South) */}
           {northVehicles.map((vtype, idx) => {
             const laneX = idx % 2 === 0 ? 460 : 485;
+            const speedFact = vtype === 'motorcycle' ? 1.25 : vtype === 'bus' || vtype === 'truck' ? 0.85 : 1.0;
+            const stopLineY = 130 - Math.floor(idx / 2) * 55;
             let vehY: number;
             if (isNSGreen) {
-              // GREEN SIGNAL: Drive at calm, ultra-slow pitch speed South bound!
               const startOffset = -30 + idx * 45;
-              vehY = ((startOffset + simStep * flowSpeed) % 540) - 20;
+              vehY = ((startOffset + simStep * flowSpeed * speedFact) % 540) - 20;
             } else {
-              // RED SIGNAL: Queue up SAFELY behind Stopline Y=160
-              vehY = 130 - Math.floor(idx / 2) * 55;
+              const rawY = (( -30 + idx * 45 + simStep * flowSpeed * speedFact) % 540) - 20;
+              vehY = (rawY > 0 && rawY < stopLineY) ? rawY : stopLineY;
             }
             return renderVehicleSVG(vtype, laneX, vehY, 180, `n_v_${idx}`);
           })}
@@ -502,14 +508,15 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           {/* SOUTH INBOUND VEHICLES (Heading North) */}
           {southVehicles.map((vtype, idx) => {
             const laneX = idx % 2 === 0 ? 515 : 540;
+            const speedFact = vtype === 'motorcycle' ? 1.25 : vtype === 'bus' || vtype === 'truck' ? 0.85 : 1.0;
+            const stopLineY = 370 + Math.floor(idx / 2) * 55;
             let vehY: number;
             if (isNSGreen) {
-              // GREEN SIGNAL: Drive at calm, ultra-slow pitch speed North bound!
               const startOffset = -30 + idx * 45;
-              vehY = 520 - ((startOffset + simStep * flowSpeed) % 540);
+              vehY = 520 - ((startOffset + simStep * flowSpeed * speedFact) % 540);
             } else {
-              // RED SIGNAL: Queue up SAFELY behind Stopline Y=340
-              vehY = 370 + Math.floor(idx / 2) * 55;
+              const rawY = 520 - (( -30 + idx * 45 + simStep * flowSpeed * speedFact) % 540);
+              vehY = (rawY < 500 && rawY > stopLineY) ? rawY : stopLineY;
             }
             return renderVehicleSVG(vtype, laneX, vehY, 0, `s_v_${idx}`);
           })}
@@ -517,14 +524,15 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           {/* WEST INBOUND VEHICLES (Heading East) */}
           {westVehicles.map((vtype, idx) => {
             const laneY = idx % 2 === 0 ? 270 : 295;
+            const speedFact = vtype === 'motorcycle' ? 1.25 : vtype === 'bus' || vtype === 'truck' ? 0.85 : 1.0;
+            const stopLineX = 370 - Math.floor(idx / 2) * 55;
             let vehX: number;
             if (isEWGreen) {
-              // GREEN SIGNAL: Drive at calm, ultra-slow pitch speed East bound!
               const startOffset = -30 + idx * 45;
-              vehX = ((startOffset + simStep * flowSpeed) % 1040) - 20;
+              vehX = ((startOffset + simStep * flowSpeed * speedFact) % 1040) - 20;
             } else {
-              // RED SIGNAL: Queue up SAFELY behind Stopline X=400
-              vehX = 370 - Math.floor(idx / 2) * 55;
+              const rawX = (( -30 + idx * 45 + simStep * flowSpeed * speedFact) % 1040) - 20;
+              vehX = (rawX > 0 && rawX < stopLineX) ? rawX : stopLineX;
             }
             return renderVehicleSVG(vtype, vehX, laneY, 90, `w_v_${idx}`);
           })}
@@ -532,14 +540,15 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           {/* EAST INBOUND VEHICLES (Heading West) */}
           {eastVehicles.map((vtype, idx) => {
             const laneY = idx % 2 === 0 ? 205 : 230;
+            const speedFact = vtype === 'motorcycle' ? 1.25 : vtype === 'bus' || vtype === 'truck' ? 0.85 : 1.0;
+            const stopLineX = 630 + Math.floor(idx / 2) * 55;
             let vehX: number;
             if (isEWGreen) {
-              // GREEN SIGNAL: Drive at calm, ultra-slow pitch speed West bound!
               const startOffset = -30 + idx * 45;
-              vehX = 1020 - ((startOffset + simStep * flowSpeed) % 1040);
+              vehX = 1020 - ((startOffset + simStep * flowSpeed * speedFact) % 1040);
             } else {
-              // RED SIGNAL: Queue up SAFELY behind Stopline X=600
-              vehX = 630 + Math.floor(idx / 2) * 55;
+              const rawX = 1020 - (( -30 + idx * 45 + simStep * flowSpeed * speedFact) % 1040);
+              vehX = (rawX < 1000 && rawX > stopLineX) ? rawX : stopLineX;
             }
             return renderVehicleSVG(vtype, vehX, laneY, 270, `e_v_${idx}`);
           })}

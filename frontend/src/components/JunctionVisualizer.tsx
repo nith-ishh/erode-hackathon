@@ -39,26 +39,28 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
   const isEWYellow = finalPhase === 3;
 
 
-  // Helper to get vehicle list for an approach
+  // Helper to get vehicle list for an approach with stable, non-changing vehicle types per slot index
   const getVehiclesForApproach = (appKey: string) => {
     const app = approaches[appKey];
     const count = app?.vehicle_count ?? (appKey === 'N' ? 5 : appKey === 'S' ? 6 : appKey === 'E' ? 7 : 8);
-    const vcounts = app?.vtype_counts || {};
 
+    // Stable, deterministic vehicle patterns per approach direction so vehicle types never morph while traveling
+    const patterns: Record<string, string[]> = {
+      N: ['car', 'motorcycle', 'car', 'auto', 'bus', 'truck', 'motorcycle', 'car'],
+      S: ['motorcycle', 'car', 'auto', 'car', 'truck', 'bus', 'car', 'motorcycle'],
+      E: ['car', 'auto', 'motorcycle', 'bus', 'car', 'truck', 'motorcycle', 'car'],
+      W: ['truck', 'car', 'motorcycle', 'bus', 'auto', 'car', 'motorcycle', 'car']
+    };
+
+    const pattern = patterns[appKey] || patterns.N;
     const list: string[] = [];
-    if (vcounts.car) for (let i = 0; i < vcounts.car; i++) list.push('car');
-    if (vcounts.motorcycle) for (let i = 0; i < vcounts.motorcycle; i++) list.push('motorcycle');
-    if (vcounts.bus) for (let i = 0; i < vcounts.bus; i++) list.push('bus');
-    if (vcounts.truck) for (let i = 0; i < vcounts.truck; i++) list.push('truck');
-    if (vcounts.auto) for (let i = 0; i < vcounts.auto; i++) list.push('auto');
 
-    const defaults = ['car', 'motorcycle', 'car', 'auto', 'bus', 'truck', 'motorcycle'];
-    while (list.length < count) {
-      list.push(defaults[list.length % defaults.length]);
+    for (let i = 0; i < Math.max(count, 5); i++) {
+      list.push(pattern[i % pattern.length]);
     }
 
-    if (isEmergency && appKey === 'N' && !list.includes('emergency')) {
-      list.unshift('emergency');
+    if (isEmergency && appKey === 'N' && list.length > 0) {
+      list[0] = 'emergency';
     }
 
     return list.slice(0, 8);

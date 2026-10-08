@@ -138,7 +138,12 @@ export const App: React.FC = () => {
       </div>
 
       {/* 2. Full-Width SUMO Digital Twin High-Definition Visualizer */}
-      <JunctionVisualizer stateData={stateData} finalPhase={finalPhase} />
+      <JunctionVisualizer
+        stateData={stateData}
+        finalPhase={finalPhase}
+        emergencyActive={emergencyActive}
+        onToggleEmergency={handleToggleEmergency}
+      />
       
       {/* 3. AI Brain + Deterministic Safety Shield Grid */}
       <div className="grid-2">

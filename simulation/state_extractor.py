@@ -126,17 +126,9 @@ class StateExtractor:
             "total_pcu_delay": 0.0,
             "total_vehicles": 0,
             "total_pedestrians_waiting": 0,
-            "emergency_present": (step > 120 and step < 180),
+            "emergency_present": False,
             "emergency_details": []
         }
-
-        if state["emergency_present"]:
-            state["emergency_details"].append({
-                "id": "emergency_1",
-                "edge": "N2J1",
-                "position": 180.0,
-                "speed": 15.0
-            })
 
         for app in self.approaches:
             veh_count = random.randint(3, 15)

@@ -199,14 +199,18 @@ class SimulationService:
         cur_phase = self.controller.current_phase
         raw_state["current_phase"] = cur_phase
 
-        if self.emergency_trigger:
+        if self.emergency_trigger or self.scenario == "emergency":
             raw_state["emergency_present"] = True
             raw_state["emergency_details"] = [{
                 "id": "emergency_ambulance_1",
                 "edge": "N2J1",
                 "position": 180.0,
-                "speed": 16.5
+                "speed": 16.5,
+                "siren_active": True
             }]
+        else:
+            raw_state["emergency_present"] = False
+            raw_state["emergency_details"] = []
 
         # 2. Emergency Detection & Green Wave Coordination
         em_info = self.emergency_detector.detect_emergency(raw_state)

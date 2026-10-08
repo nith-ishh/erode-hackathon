@@ -25,15 +25,18 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
   emergencyActive = false,
   onToggleEmergency
 }) => {
-  const [speedMultiplier, setSpeedMultiplier] = useState<number>(0.5); // Super calm, readable presentation speed default
+  const [speedMultiplier, setSpeedMultiplier] = useState<number>(0.5); // Calm presentation speed default
   const [localEmergency, setLocalEmergency] = useState<boolean>(false);
-  const [animFrame, setAnimFrame] = useState<number>(0);
+  const [animTime, setAnimTime] = useState<number>(0);
 
-  // 60 FPS continuous animation loop for high refresh rate lag-free rendering
+  // 60 FPS continuous delta-time animation clock (guarantees continuous non-stop motion)
   useEffect(() => {
     let animId: number;
-    const updateLoop = () => {
-      setAnimFrame((prev) => (prev + 1) % 10000);
+    let lastTime = performance.now();
+    const updateLoop = (now: number) => {
+      const delta = Math.min((now - lastTime) / 1000, 0.1);
+      lastTime = now;
+      setAnimTime((prev) => prev + delta);
       animId = requestAnimationFrame(updateLoop);
     };
     animId = requestAnimationFrame(updateLoop);
@@ -44,8 +47,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
   const isEmergency = emergencyActive || localEmergency || stateData?.state?.emergency_present || false;
   const breakItActive = stateData?.safety_shield?.break_it_active || false;
   const fallbackActive = stateData?.safety_shield?.fallback_active || breakItActive;
-  const rawStep = stateData?.step || 0;
-  const simStep = rawStep * 0.2 + animFrame * 0.003;
+  const simStep = animTime * 35;
 
   const handleTriggerAmbulanceClick = () => {
     if (onToggleEmergency) {
@@ -55,9 +57,9 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
     }
   };
 
-  // Ultra-calm presentation speeds (4x slower) so every vehicle is clearly visible to jury
-  const flowSpeed = 0.15 * speedMultiplier;
-  const pedSpeed = 0.08 * speedMultiplier;
+  // Speed formulas (smooth, continuous motion for 0.5x, 1x, 2x speed modes)
+  const flowSpeed = 1.0 * speedMultiplier;
+  const pedSpeed = 0.5 * speedMultiplier;
 
   // Signal phase status: 0/1 = NS Green/Yellow, 2/3 = EW Green/Yellow (Force NS Green on Emergency)
   const isNSGreen = isEmergency || finalPhase === 0;

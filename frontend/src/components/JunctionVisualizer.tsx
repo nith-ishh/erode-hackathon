@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Siren, Shield, Activity } from 'lucide-react';
 
 interface ApproachData {
@@ -18,11 +18,17 @@ interface JunctionVisualizerProps {
 }
 
 export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateData, finalPhase }) => {
+  const [speedMultiplier, setSpeedMultiplier] = useState<number>(0.2); // Ultra-slow default for pitch presentation!
+
   const approaches: Record<string, ApproachData> = stateData?.state?.approaches || {};
   const isEmergency = stateData?.state?.emergency_present || false;
   const breakItActive = stateData?.safety_shield?.break_it_active || false;
   const fallbackActive = stateData?.safety_shield?.fallback_active || breakItActive;
   const simStep = stateData?.step || 0;
+
+  // Speed formulas (ultra-slow and calm for jury demonstration)
+  const flowSpeed = 6 * speedMultiplier;
+  const pedSpeed = 2.5 * speedMultiplier;
 
   // Signal phase status: 0/1 = NS Green/Yellow, 2/3 = EW Green/Yellow
   const isNSGreen = finalPhase === 0;
@@ -144,6 +150,56 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {/* Speed Control Selector for Jury Presentation */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(15, 23, 42, 0.8)', padding: '0.25rem 0.5rem', borderRadius: '0.5rem', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, marginRight: '0.2rem' }}>Speed:</span>
+            <button
+              onClick={() => setSpeedMultiplier(0.1)}
+              style={{
+                background: speedMultiplier === 0.1 ? 'var(--accent-cyan)' : 'transparent',
+                color: speedMultiplier === 0.1 ? '#090d16' : '#94a3b8',
+                border: 'none',
+                borderRadius: '0.3rem',
+                padding: '0.2rem 0.5rem',
+                fontSize: '0.75rem',
+                fontWeight: 800,
+                cursor: 'pointer'
+              }}
+            >
+              🐢 Ultra-Slow (0.1x)
+            </button>
+            <button
+              onClick={() => setSpeedMultiplier(0.2)}
+              style={{
+                background: speedMultiplier === 0.2 ? 'var(--accent-cyan)' : 'transparent',
+                color: speedMultiplier === 0.2 ? '#090d16' : '#94a3b8',
+                border: 'none',
+                borderRadius: '0.3rem',
+                padding: '0.2rem 0.5rem',
+                fontSize: '0.75rem',
+                fontWeight: 800,
+                cursor: 'pointer'
+              }}
+            >
+              🚗 Pitch Mode (0.2x)
+            </button>
+            <button
+              onClick={() => setSpeedMultiplier(0.5)}
+              style={{
+                background: speedMultiplier === 0.5 ? 'var(--accent-cyan)' : 'transparent',
+                color: speedMultiplier === 0.5 ? '#090d16' : '#94a3b8',
+                border: 'none',
+                borderRadius: '0.3rem',
+                padding: '0.2rem 0.5rem',
+                fontSize: '0.75rem',
+                fontWeight: 800,
+                cursor: 'pointer'
+              }}
+            >
+              ⚡ Normal (0.5x)
+            </button>
+          </div>
+
           <span className={`badge ${fallbackActive ? 'badge-red' : 'badge-green'}`} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
             <Shield className="w-4 h-4" />
             {fallbackActive ? 'FALLBACK MODE ACTIVE' : 'NORMAL AI ADAPTIVE CONTROL'}
@@ -291,7 +347,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           </g>
 
           {/* ========================================================================= */}
-          {/* DYNAMICALLY ANIMATED DRIVING VEHICLES (ADAPTIVE TRAFFIC SIGNAL RULES) */}
+          {/* DYNAMICALLY ANIMATED DRIVING VEHICLES (ULTRA-SLOW PITCH PRESENTATION SPEED) */}
           {/* ========================================================================= */}
 
           {/* NORTH INBOUND VEHICLES (Heading South) */}
@@ -299,8 +355,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             const laneX = idx % 2 === 0 ? 460 : 485;
             let vehY: number;
             if (isNSGreen) {
-              // GREEN SIGNAL: Drive smoothly at realistic speed South bound!
-              const flowSpeed = 9;
+              // GREEN SIGNAL: Drive at calm, ultra-slow pitch speed South bound!
               const startOffset = -30 + idx * 45;
               vehY = ((startOffset + simStep * flowSpeed) % 540) - 20;
             } else {
@@ -315,8 +370,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             const laneX = idx % 2 === 0 ? 515 : 540;
             let vehY: number;
             if (isNSGreen) {
-              // GREEN SIGNAL: Drive smoothly at realistic speed North bound!
-              const flowSpeed = 9;
+              // GREEN SIGNAL: Drive at calm, ultra-slow pitch speed North bound!
               const startOffset = -30 + idx * 45;
               vehY = 520 - ((startOffset + simStep * flowSpeed) % 540);
             } else {
@@ -331,8 +385,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             const laneY = idx % 2 === 0 ? 270 : 295;
             let vehX: number;
             if (isEWGreen) {
-              // GREEN SIGNAL: Drive smoothly at realistic speed East bound!
-              const flowSpeed = 9;
+              // GREEN SIGNAL: Drive at calm, ultra-slow pitch speed East bound!
               const startOffset = -30 + idx * 45;
               vehX = ((startOffset + simStep * flowSpeed) % 1040) - 20;
             } else {
@@ -347,8 +400,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             const laneY = idx % 2 === 0 ? 205 : 230;
             let vehX: number;
             if (isEWGreen) {
-              // GREEN SIGNAL: Drive smoothly at realistic speed West bound!
-              const flowSpeed = 9;
+              // GREEN SIGNAL: Drive at calm, ultra-slow pitch speed West bound!
               const startOffset = -30 + idx * 45;
               vehX = 1020 - ((startOffset + simStep * flowSpeed) % 1040);
             } else {
@@ -362,10 +414,10 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           {/* ANIMATED PEDESTRIANS WALKING ON SAFE CROSSWALKS */}
           {/* ========================================================================= */}
 
-          {/* North Crosswalk Pedestrians (Walks at natural realistic pace when NS Signal is RED) */}
+          {/* North Crosswalk Pedestrians (Walks at calm presentation pace when NS Signal is RED) */}
           {[...Array(approaches.N?.pedestrians_waiting || 3)].map((_, i) => {
             const isSafeToWalk = !isNSGreen;
-            const pX = isSafeToWalk ? 430 + ((i * 35 + simStep * 4) % 130) : 425;
+            const pX = isSafeToWalk ? 430 + ((i * 35 + simStep * pedSpeed) % 130) : 425;
             return (
               <g key={`ped_n_${i}`} transform={`translate(${pX}, 170)`} style={{ transition: 'all 0.8s linear' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
@@ -374,10 +426,10 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             );
           })}
 
-          {/* South Crosswalk Pedestrians (Walks at natural realistic pace when NS Signal is RED) */}
+          {/* South Crosswalk Pedestrians (Walks at calm presentation pace when NS Signal is RED) */}
           {[...Array(approaches.S?.pedestrians_waiting || 3)].map((_, i) => {
             const isSafeToWalk = !isNSGreen;
-            const pX = isSafeToWalk ? 570 - ((i * 35 + simStep * 4) % 130) : 575;
+            const pX = isSafeToWalk ? 570 - ((i * 35 + simStep * pedSpeed) % 130) : 575;
             return (
               <g key={`ped_s_${i}`} transform={`translate(${pX}, 330)`} style={{ transition: 'all 0.8s linear' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
@@ -386,10 +438,10 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             );
           })}
 
-          {/* East Crosswalk Pedestrians (Walks at natural realistic pace when EW Signal is RED) */}
+          {/* East Crosswalk Pedestrians (Walks at calm presentation pace when EW Signal is RED) */}
           {[...Array(approaches.E?.pedestrians_waiting || 2)].map((_, i) => {
             const isSafeToWalk = !isEWGreen;
-            const pY = isSafeToWalk ? 190 + ((i * 35 + simStep * 4) % 120) : 185;
+            const pY = isSafeToWalk ? 190 + ((i * 35 + simStep * pedSpeed) % 120) : 185;
             return (
               <g key={`ped_e_${i}`} transform={`translate(590, ${pY})`} style={{ transition: 'all 0.8s linear' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
@@ -398,10 +450,10 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             );
           })}
 
-          {/* West Crosswalk Pedestrians (Walks at natural realistic pace when EW Signal is RED) */}
+          {/* West Crosswalk Pedestrians (Walks at calm presentation pace when EW Signal is RED) */}
           {[...Array(approaches.W?.pedestrians_waiting || 2)].map((_, i) => {
             const isSafeToWalk = !isEWGreen;
-            const pY = isSafeToWalk ? 310 - ((i * 35 + simStep * 4) % 120) : 315;
+            const pY = isSafeToWalk ? 310 - ((i * 35 + simStep * pedSpeed) % 120) : 315;
             return (
               <g key={`ped_w_${i}`} transform={`translate(410, ${pY})`} style={{ transition: 'all 0.8s linear' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />

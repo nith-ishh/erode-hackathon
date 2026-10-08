@@ -133,11 +133,12 @@ class StateExtractor:
             "emergency_details": []
         }
 
-        base_queues = {
-            "N": max(1.5, round(4.5 + 2.5 * math.sin(t * 0.12) + random.uniform(-0.4, 0.4), 1)),
-            "S": max(1.2, round(3.8 + 2.1 * math.sin(t * 0.12 + 1.2) + random.uniform(-0.3, 0.3), 1)),
-            "E": max(1.0, round(5.2 + 3.0 * math.sin(t * 0.12 + 2.4) + random.uniform(-0.5, 0.5), 1)),
-            "W": max(1.4, round(4.1 + 2.2 * math.sin(t * 0.12 + 3.6) + random.uniform(-0.4, 0.4), 1))
+        # Base illustrative vehicle distributions for live demo (East lane has highest queue: 15 bikes, 6 cars, 3 autos)
+        illustrative_vtypes = {
+            "N": {"motorcycle": 10, "car": 5, "bus": 1, "truck": 0, "auto": 0},
+            "S": {"motorcycle": 8, "car": 4, "bus": 0, "truck": 0, "auto": 2},
+            "E": {"motorcycle": 15, "car": 6, "bus": 0, "truck": 0, "auto": 3},
+            "W": {"motorcycle": 7, "car": 3, "bus": 1, "truck": 0, "auto": 0}
         }
 
         base_peds = {
@@ -148,26 +149,22 @@ class StateExtractor:
         }
 
         for app in self.approaches:
-            pcu_q = base_queues[app]
-            peds = base_peds[app]
-            veh_count = int(max(4, pcu_q * 1.6 + random.randint(0, 2)))
-            queue_count = int(max(1, pcu_q * 1.1))
+            vtype_counts = illustrative_vtypes[app].copy()
             
-            vtype_counts = {
-                "car": max(2, int(veh_count * 0.45)),
-                "motorcycle": max(2, int(veh_count * 0.35)),
-                "bus": 1 if app in ["N", "E"] and step % 4 == 0 else 0,
-                "truck": 1 if app in ["S", "W"] and step % 5 == 0 else 0,
-                "auto": max(1, int(veh_count * 0.15))
-            }
-            
+            # Add subtle dynamic fluctuations per step
+            vtype_counts["motorcycle"] = max(2, vtype_counts["motorcycle"] + int(math.sin(t * 0.15 + (1.0 if app in ["E", "N"] else 0.0))))
+            vtype_counts["car"] = max(1, vtype_counts["car"] + int(math.cos(t * 0.1)))
+
+            veh_count = sum(vtype_counts.values())
             pcu_count = self.pcu_calc.calculate_pcu_count(vtype_counts)
-            pcu_delay = round(pcu_q * (12.0 + 4.0 * math.sin(t * 0.05)), 2)
+            pcu_q = round(pcu_count * 0.85, 1)
+            pcu_delay = round(pcu_q * (12.0 + 3.0 * math.sin(t * 0.05)), 2)
+            peds = base_peds[app]
 
             state["approaches"][app] = {
                 "edge_id": f"{app}2J1",
                 "vehicle_count": veh_count,
-                "queue_count": queue_count,
+                "queue_count": int(veh_count * 0.7),
                 "vtype_counts": vtype_counts,
                 "pcu_count": pcu_count,
                 "pcu_queue": pcu_q,

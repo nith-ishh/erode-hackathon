@@ -69,14 +69,15 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
   // Helper to get vehicle list for an approach with stable, non-changing vehicle types per slot index
   const getVehiclesForApproach = (appKey: string) => {
     const app = approaches[appKey];
-    const count = app?.vehicle_count ?? (appKey === 'N' ? 5 : appKey === 'S' ? 6 : appKey === 'E' ? 7 : 8);
+    // Default illustrative counts matching pitch scenario: North: 16, South: 14, East: 24 (Longest queue!), West: 11
+    const count = app?.vehicle_count ?? (appKey === 'N' ? 16 : appKey === 'S' ? 14 : appKey === 'E' ? 24 : 11);
 
-    // Stable, deterministic vehicle patterns per approach direction so vehicle types never morph while traveling
+    // Stable, deterministic vehicle patterns per approach direction matching illustrative vehicle proportions
     const patterns: Record<string, string[]> = {
-      N: ['car', 'motorcycle', 'car', 'auto', 'bus', 'truck', 'motorcycle', 'car'],
-      S: ['motorcycle', 'car', 'auto', 'car', 'truck', 'bus', 'car', 'motorcycle'],
-      E: ['car', 'auto', 'motorcycle', 'bus', 'car', 'truck', 'motorcycle', 'car'],
-      W: ['truck', 'car', 'motorcycle', 'bus', 'auto', 'car', 'motorcycle', 'car']
+      N: ['motorcycle', 'car', 'motorcycle', 'car', 'bus', 'motorcycle', 'car', 'motorcycle'],
+      S: ['motorcycle', 'car', 'auto', 'motorcycle', 'car', 'auto', 'motorcycle', 'car'],
+      E: ['motorcycle', 'car', 'auto', 'motorcycle', 'motorcycle', 'car', 'auto', 'motorcycle', 'car'],
+      W: ['motorcycle', 'car', 'bus', 'motorcycle', 'car', 'motorcycle', 'car', 'motorcycle']
     };
 
     const pattern = patterns[appKey] || patterns.N;

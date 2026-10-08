@@ -291,6 +291,71 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           </g>
 
           {/* ========================================================================= */}
+          {/* DEDICATED PEDESTRIAN WALK / STOP SIGNALS (SEPARATE SIGNALS FOR CROSSWALKS) */}
+          {/* ========================================================================= */}
+
+          {/* North Crosswalk Pedestrian Signals (North & South road crossing) */}
+          <g transform="translate(378, 170)">
+            <rect x="-22" y="-10" width="44" height="20" rx="4" fill="#0f172a" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="-12" cy="0" r="4" fill={!isNSGreen ? "#22c55e" : "#ef4444"}>
+              {!isNSGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
+            </circle>
+            <text x="4" y="3.5" textAnchor="middle" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="8.5" fontWeight="900">{!isNSGreen ? "WALK" : "STOP"}</text>
+            <text x="0" y="18" textAnchor="middle" fill="#64748b" fontSize="7" fontWeight="700">PED N</text>
+          </g>
+
+          <g transform="translate(622, 170)">
+            <rect x="-22" y="-10" width="44" height="20" rx="4" fill="#0f172a" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="-12" cy="0" r="4" fill={!isNSGreen ? "#22c55e" : "#ef4444"}>
+              {!isNSGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
+            </circle>
+            <text x="4" y="3.5" textAnchor="middle" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="8.5" fontWeight="900">{!isNSGreen ? "WALK" : "STOP"}</text>
+            <text x="0" y="18" textAnchor="middle" fill="#64748b" fontSize="7" fontWeight="700">PED N</text>
+          </g>
+
+          {/* South Crosswalk Pedestrian Signals */}
+          <g transform="translate(378, 330)">
+            <rect x="-22" y="-10" width="44" height="20" rx="4" fill="#0f172a" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="-12" cy="0" r="4" fill={!isNSGreen ? "#22c55e" : "#ef4444"}>
+              {!isNSGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
+            </circle>
+            <text x="4" y="3.5" textAnchor="middle" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="8.5" fontWeight="900">{!isNSGreen ? "WALK" : "STOP"}</text>
+            <text x="0" y="18" textAnchor="middle" fill="#64748b" fontSize="7" fontWeight="700">PED S</text>
+          </g>
+
+          <g transform="translate(622, 330)">
+            <rect x="-22" y="-10" width="44" height="20" rx="4" fill="#0f172a" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="-12" cy="0" r="4" fill={!isNSGreen ? "#22c55e" : "#ef4444"}>
+              {!isNSGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
+            </circle>
+            <text x="4" y="3.5" textAnchor="middle" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="8.5" fontWeight="900">{!isNSGreen ? "WALK" : "STOP"}</text>
+            <text x="0" y="18" textAnchor="middle" fill="#64748b" fontSize="7" fontWeight="700">PED S</text>
+          </g>
+
+          {/* West Crosswalk Pedestrian Signals */}
+          <g transform="translate(403, 142)">
+            <rect x="-20" y="-8" width="40" height="16" rx="3" fill="#0f172a" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <text x="0" y="3.5" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="7.5" fontWeight="900">{!isEWGreen ? "🚶 WALK" : "✋ STOP"}</text>
+          </g>
+
+          <g transform="translate(403, 358)">
+            <rect x="-20" y="-8" width="40" height="16" rx="3" fill="#0f172a" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <text x="0" y="3.5" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="7.5" fontWeight="900">{!isEWGreen ? "🚶 WALK" : "✋ STOP"}</text>
+          </g>
+
+          {/* East Crosswalk Pedestrian Signals */}
+          <g transform="translate(597, 142)">
+            <rect x="-20" y="-8" width="40" height="16" rx="3" fill="#0f172a" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <text x="0" y="3.5" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="7.5" fontWeight="900">{!isEWGreen ? "🚶 WALK" : "✋ STOP"}</text>
+          </g>
+
+          <g transform="translate(597, 358)">
+            <rect x="-20" y="-8" width="40" height="16" rx="3" fill="#0f172a" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <text x="0" y="3.5" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="7.5" fontWeight="900">{!isEWGreen ? "🚶 WALK" : "✋ STOP"}</text>
+          </g>
+
+
+          {/* ========================================================================= */}
           {/* DYNAMICALLY ANIMATED DRIVING VEHICLES (ADAPTIVE TRAFFIC SIGNAL RULES) */}
           {/* ========================================================================= */}
 

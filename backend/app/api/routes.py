@@ -1,7 +1,7 @@
 """
 FastAPI REST API Routes
-Exposes API endpoints for live junction state, scenario selection, Break-It fault toggling,
-emergency corridor triggers, decision logs, and counterfactual comparison metrics.
+Exposes endpoints for live junction state, dual controller comparison, Break-It fault toggling,
+emergency corridor triggers, traffic surges, decision audit logs, and counterfactual metrics.
 """
 
 from fastapi import APIRouter, HTTPException, Query
@@ -18,18 +18,27 @@ router = APIRouter(prefix="/api")
 
 @router.get("/state")
 def get_current_state():
-    """Get current traffic state and active phase."""
+    """Get current live traffic state, PPO decisions, Safety Shield status, and Dual Controller metrics."""
     step_data = sim_service.process_step()
     return step_data
 
 @router.post("/scenario")
-def set_scenario(name: str = Query("normal", description="Scenario name: normal, rush_hour, high_density, incident")):
-    """Set simulation scenario (normal, rush_hour, high_density, incident)."""
-    valid = ["normal", "rush_hour", "high_density", "incident"]
+def set_scenario(name: str = Query("normal", description="Scenario: normal, rush_hour, heavy_ew, heavy_ns, pedestrian_heavy, emergency, high_density, incident")):
+    """Set simulation scenario."""
+    valid = ["normal", "rush_hour", "heavy_ew", "heavy_ns", "pedestrian_heavy", "emergency", "high_density", "incident"]
     if name not in valid:
         raise HTTPException(status_code=400, detail=f"Invalid scenario name. Must be one of {valid}")
     success = sim_service.start_simulation(scenario_name=name)
     return {"status": "success", "scenario": name, "started": success}
+
+@router.post("/surge")
+def trigger_traffic_surge(
+    direction: str = Query("EW", description="Direction to surge traffic: EW or NS"),
+    amount: float = Query(15.0, description="Amount of PCU queue to inject")
+):
+    """Dynamically surge traffic in a specific direction (Proof of Adaptivity Demo)."""
+    res = sim_service.trigger_surge(direction=direction, amount=amount)
+    return res
 
 @router.post("/break-it")
 def toggle_break_it():
@@ -48,9 +57,23 @@ def set_emergency(enable: bool = Query(True, description="Enable or disable emer
     return {"status": "success", "emergency_active": active}
 
 @router.get("/metrics")
-def get_counterfactual_metrics():
-    """Run counterfactual twin comparison and return AI vs Baseline performance statistics."""
-    metrics = sim_service.run_counterfactual_comparison()
+def get_counterfactual_metrics(
+    scenario: str = Query("rush_hour", description="Scenario for twin comparison"),
+    steps: int = Query(600, description="Simulation duration steps"),
+    seed: int = Query(12345, description="Random seed for fair comparison")
+):
+    """Run fair counterfactual twin comparison on identical parameters and return empirical metrics."""
+    metrics = sim_service.run_counterfactual_comparison(scenario=scenario, steps=steps, seed=seed)
+    return metrics
+
+@router.post("/compare/run")
+def run_comparison_test(
+    scenario: str = Query("rush_hour", description="Scenario for twin comparison"),
+    steps: int = Query(600, description="Simulation duration steps"),
+    seed: int = Query(12345, description="Random seed for fair comparison")
+):
+    """Explicit endpoint to trigger fair comparison experiment test."""
+    metrics = sim_service.run_counterfactual_comparison(scenario=scenario, steps=steps, seed=seed)
     return metrics
 
 @router.get("/decisions")
@@ -72,4 +95,3 @@ def get_safety_status():
         "rules": sim_service.safety_shield.RULES,
         "audit_stats": stats
     }
-

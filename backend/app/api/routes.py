@@ -61,11 +61,15 @@ def get_decision_history(limit: int = 50):
 
 @router.get("/safety")
 def get_safety_status():
-    """Retrieve Safety Shield current rule statuses."""
+    """Retrieve Safety Shield current rule statuses, audit stats, and guardrail rules."""
+    stats = sim_service.safety_shield.get_shield_stats()
     return {
         "sensor_fault": sim_service.break_it_active,
         "safety_shield_active": True,
-        "min_green_s": 10,
-        "max_green_s": 60,
-        "mode": "FALLBACK_MODE" if sim_service.break_it_active else "NORMAL_AI_CONTROL"
+        "min_green_s": sim_service.safety_shield.min_green,
+        "max_green_s": sim_service.safety_shield.max_green,
+        "mode": "FALLBACK_MODE" if sim_service.break_it_active else "NORMAL_AI_CONTROL",
+        "rules": sim_service.safety_shield.RULES,
+        "audit_stats": stats
     }
+

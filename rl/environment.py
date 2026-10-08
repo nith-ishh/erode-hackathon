@@ -44,9 +44,10 @@ class TrafficSignalEnv(gym.Env):
     """
     metadata = {"render_modes": ["human"]}
 
-    def __init__(self, sumocfg_path: Optional[str] = None, use_gui: bool = False, max_steps: int = 3600):
+    def __init__(self, sumocfg_path: Optional[str] = None, use_gui: bool = False, max_steps: int = 3600, mock_mode: bool = False):
         super().__init__()
         self.max_steps = max_steps
+        self.mock_mode = mock_mode
         self.controller = SUMOTraCIController(sumocfg_path=sumocfg_path, use_gui=use_gui, label="rl_env")
         self.extractor = StateExtractor()
         self.jev = JEVDecisionLayer()
@@ -106,8 +107,9 @@ class TrafficSignalEnv(gym.Env):
 
     def reset(self, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None) -> Tuple[np.ndarray, Dict[str, Any]]:
         super().reset(seed=seed)
-        self.controller.close()
-        self.controller.start(seed=seed if seed else 42)
+        if not self.mock_mode:
+            self.controller.close()
+            self.controller.start(seed=seed if seed else 42)
         
         self.current_step = 0
         state = self.extractor.extract_state_traci(traci, label="rl_env") if (self.controller.is_connected and traci is not None) else self.extractor.extract_mock_state(0)

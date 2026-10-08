@@ -57,9 +57,9 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
     }
   };
 
-  // Speed formulas (smooth, continuous motion for 0.5x, 1x, 2x speed modes)
-  const flowSpeed = 1.0 * speedMultiplier;
-  const pedSpeed = 0.5 * speedMultiplier;
+  // Speed formulas: Regular vehicles 2x slower (0.5x flowSpeed), ambulance maintains fast priority speed
+  const flowSpeed = 0.5 * speedMultiplier;
+  const pedSpeed = 0.25 * speedMultiplier;
 
   // Signal phase status: 0/1 = NS Green/Yellow, 2/3 = EW Green/Yellow (Force NS Green on Emergency)
   const isNSGreen = isEmergency || finalPhase === 0;
@@ -554,8 +554,8 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             const movesContinuously = (isAmbulance && isEmergency) || isNSGreen;
 
             if (movesContinuously) {
-              // Siren ON: Ambulance moves continuously forward at steady priority pace (2.2x relative speed), NEVER stopping!
-              const currentSpeed = (isAmbulance && isEmergency) ? flowSpeed * 2.2 : flowSpeed;
+              // Siren ON: Ambulance maintains fast priority speed (4.4x relative to 2x slower traffic), NEVER stopping!
+              const currentSpeed = (isAmbulance && isEmergency) ? flowSpeed * 4.4 : flowSpeed;
               const startOffset = -30 + idx * 45;
               vehY = ((startOffset + simStep * currentSpeed) % 540) - 20;
             } else {

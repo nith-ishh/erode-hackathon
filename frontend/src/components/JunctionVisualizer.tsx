@@ -65,6 +65,11 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
   const isEWGreen = activePhase === 2;
   const isEWYellow = activePhase === 3;
 
+  // Dedicated 5-second pedestrian crossing window (~25 frames) during red/clearance phase
+  const is5SecPedWindow = (simStep % 70) < 25;
+  const showNSPedWalk = !isNSGreen && is5SecPedWindow;
+  const showEWPedWalk = !isEWGreen && is5SecPedWindow;
+
 
   // Helper to get vehicle list for an approach with stable, non-changing vehicle types per slot index
   const getVehiclesForApproach = (appKey: string) => {
@@ -407,83 +412,83 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           </g>
 
           {/* ========================================================================= */}
-          {/* 2. DEDICATED PEDESTRIAN WALK / STOP SIGNALS (ON SIDEWALK CURBS) */}
+          {/* 2. DEDICATED PEDESTRIAN WALK / STOP SIGNALS (5-SECOND CROSSING WINDOW) */}
           {/* ========================================================================= */}
 
           {/* North Zebra Crosswalk Pedestrian Heads (West & East Curbs) */}
           <g transform="translate(412, 170)">
-            <rect x="-10" y="-12" width="20" height="24" rx="3" fill="#030712" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
-            <circle cx="0" cy="-4" r="3.5" fill={!isNSGreen ? "#032e14" : "#ef4444"} />
-            <circle cx="0" cy="4" r="3.5" fill={!isNSGreen ? "#22c55e" : "#032e14"}>
-              {!isNSGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
+            <rect x="-10" y="-12" width="20" height="24" rx="3" fill="#030712" stroke={showNSPedWalk ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="0" cy="-4" r="3.5" fill={showNSPedWalk ? "#032e14" : "#ef4444"} />
+            <circle cx="0" cy="4" r="3.5" fill={showNSPedWalk ? "#22c55e" : "#032e14"}>
+              {showNSPedWalk && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
             </circle>
-            <text x="-16" y="3" textAnchor="end" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{!isNSGreen ? "WALK" : "STOP"}</text>
+            <text x="-16" y="3" textAnchor="end" fill={showNSPedWalk ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{showNSPedWalk ? "WALK" : "STOP"}</text>
           </g>
 
           <g transform="translate(588, 170)">
-            <rect x="-10" y="-12" width="20" height="24" rx="3" fill="#030712" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
-            <circle cx="0" cy="-4" r="3.5" fill={!isNSGreen ? "#032e14" : "#ef4444"} />
-            <circle cx="0" cy="4" r="3.5" fill={!isNSGreen ? "#22c55e" : "#032e14"}>
-              {!isNSGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
+            <rect x="-10" y="-12" width="20" height="24" rx="3" fill="#030712" stroke={showNSPedWalk ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="0" cy="-4" r="3.5" fill={showNSPedWalk ? "#032e14" : "#ef4444"} />
+            <circle cx="0" cy="4" r="3.5" fill={showNSPedWalk ? "#22c55e" : "#032e14"}>
+              {showNSPedWalk && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
             </circle>
-            <text x="16" y="3" textAnchor="start" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{!isNSGreen ? "WALK" : "STOP"}</text>
+            <text x="16" y="3" textAnchor="start" fill={showNSPedWalk ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{showNSPedWalk ? "WALK" : "STOP"}</text>
           </g>
 
           {/* South Zebra Crosswalk Pedestrian Heads (West & East Curbs) */}
           <g transform="translate(412, 330)">
-            <rect x="-10" y="-12" width="20" height="24" rx="3" fill="#030712" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
-            <circle cx="0" cy="-4" r="3.5" fill={!isNSGreen ? "#032e14" : "#ef4444"} />
-            <circle cx="0" cy="4" r="3.5" fill={!isNSGreen ? "#22c55e" : "#032e14"}>
-              {!isNSGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
+            <rect x="-10" y="-12" width="20" height="24" rx="3" fill="#030712" stroke={showNSPedWalk ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="0" cy="-4" r="3.5" fill={showNSPedWalk ? "#032e14" : "#ef4444"} />
+            <circle cx="0" cy="4" r="3.5" fill={showNSPedWalk ? "#22c55e" : "#032e14"}>
+              {showNSPedWalk && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
             </circle>
-            <text x="-16" y="3" textAnchor="end" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{!isNSGreen ? "WALK" : "STOP"}</text>
+            <text x="-16" y="3" textAnchor="end" fill={showNSPedWalk ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{showNSPedWalk ? "WALK" : "STOP"}</text>
           </g>
 
           <g transform="translate(588, 330)">
-            <rect x="-10" y="-12" width="20" height="24" rx="3" fill="#030712" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
-            <circle cx="0" cy="-4" r="3.5" fill={!isNSGreen ? "#032e14" : "#ef4444"} />
-            <circle cx="0" cy="4" r="3.5" fill={!isNSGreen ? "#22c55e" : "#032e14"}>
-              {!isNSGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
+            <rect x="-10" y="-12" width="20" height="24" rx="3" fill="#030712" stroke={showNSPedWalk ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="0" cy="-4" r="3.5" fill={showNSPedWalk ? "#032e14" : "#ef4444"} />
+            <circle cx="0" cy="4" r="3.5" fill={showNSPedWalk ? "#22c55e" : "#032e14"}>
+              {showNSPedWalk && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
             </circle>
-            <text x="16" y="3" textAnchor="start" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{!isNSGreen ? "WALK" : "STOP"}</text>
+            <text x="16" y="3" textAnchor="start" fill={showNSPedWalk ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{showNSPedWalk ? "WALK" : "STOP"}</text>
           </g>
 
           {/* West Zebra Crosswalk Pedestrian Heads (North & South Curbs) */}
           <g transform="translate(400, 168)">
-            <rect x="-12" y="-10" width="24" height="20" rx="3" fill="#030712" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
-            <circle cx="-4" cy="0" r="3.5" fill={!isEWGreen ? "#032e14" : "#ef4444"} />
-            <circle cx="4" cy="0" r="3.5" fill={!isEWGreen ? "#22c55e" : "#032e14"}>
-              {!isEWGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
+            <rect x="-12" y="-10" width="24" height="20" rx="3" fill="#030712" stroke={showEWPedWalk ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="-4" cy="0" r="3.5" fill={showEWPedWalk ? "#032e14" : "#ef4444"} />
+            <circle cx="4" cy="0" r="3.5" fill={showEWPedWalk ? "#22c55e" : "#032e14"}>
+              {showEWPedWalk && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
             </circle>
-            <text x="0" y="-14" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{!isEWGreen ? "WALK" : "STOP"}</text>
+            <text x="0" y="-14" textAnchor="middle" fill={showEWPedWalk ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{showEWPedWalk ? "WALK" : "STOP"}</text>
           </g>
 
           <g transform="translate(400, 332)">
-            <rect x="-12" y="-10" width="24" height="20" rx="3" fill="#030712" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
-            <circle cx="-4" cy="0" r="3.5" fill={!isEWGreen ? "#032e14" : "#ef4444"} />
-            <circle cx="4" cy="0" r="3.5" fill={!isEWGreen ? "#22c55e" : "#032e14"}>
-              {!isEWGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
+            <rect x="-12" y="-10" width="24" height="20" rx="3" fill="#030712" stroke={showEWPedWalk ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="-4" cy="0" r="3.5" fill={showEWPedWalk ? "#032e14" : "#ef4444"} />
+            <circle cx="4" cy="0" r="3.5" fill={showEWPedWalk ? "#22c55e" : "#032e14"}>
+              {showEWPedWalk && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
             </circle>
-            <text x="0" y="22" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{!isEWGreen ? "WALK" : "STOP"}</text>
+            <text x="0" y="22" textAnchor="middle" fill={showEWPedWalk ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{showEWPedWalk ? "WALK" : "STOP"}</text>
           </g>
 
           {/* East Zebra Crosswalk Pedestrian Heads (North & South Curbs) */}
           <g transform="translate(600, 168)">
-            <rect x="-12" y="-10" width="24" height="20" rx="3" fill="#030712" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
-            <circle cx="-4" cy="0" r="3.5" fill={!isEWGreen ? "#032e14" : "#ef4444"} />
-            <circle cx="4" cy="0" r="3.5" fill={!isEWGreen ? "#22c55e" : "#032e14"}>
-              {!isEWGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
+            <rect x="-12" y="-10" width="24" height="20" rx="3" fill="#030712" stroke={showEWPedWalk ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="-4" cy="0" r="3.5" fill={showEWPedWalk ? "#032e14" : "#ef4444"} />
+            <circle cx="4" cy="0" r="3.5" fill={showEWPedWalk ? "#22c55e" : "#032e14"}>
+              {showEWPedWalk && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
             </circle>
-            <text x="0" y="-14" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{!isEWGreen ? "WALK" : "STOP"}</text>
+            <text x="0" y="-14" textAnchor="middle" fill={showEWPedWalk ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{showEWPedWalk ? "WALK" : "STOP"}</text>
           </g>
 
           <g transform="translate(600, 332)">
-            <rect x="-12" y="-10" width="24" height="20" rx="3" fill="#030712" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
-            <circle cx="-4" cy="0" r="3.5" fill={!isEWGreen ? "#032e14" : "#ef4444"} />
-            <circle cx="4" cy="0" r="3.5" fill={!isEWGreen ? "#22c55e" : "#032e14"}>
-              {!isEWGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
+            <rect x="-12" y="-10" width="24" height="20" rx="3" fill="#030712" stroke={showEWPedWalk ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <circle cx="-4" cy="0" r="3.5" fill={showEWPedWalk ? "#032e14" : "#ef4444"} />
+            <circle cx="4" cy="0" r="3.5" fill={showEWPedWalk ? "#22c55e" : "#032e14"}>
+              {showEWPedWalk && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
             </circle>
-            <text x="0" y="22" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{!isEWGreen ? "WALK" : "STOP"}</text>
+            <text x="0" y="22" textAnchor="middle" fill={showEWPedWalk ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">{showEWPedWalk ? "WALK" : "STOP"}</text>
           </g>
 
           {/* ========================================================================= */}
@@ -566,9 +571,9 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           {/* ANIMATED PEDESTRIANS WALKING ON SAFE CROSSWALKS */}
           {/* ========================================================================= */}
 
-          {/* North Crosswalk Pedestrians */}
+          {/* North Crosswalk Pedestrians (5s WALK window) */}
           {[...Array(approaches.N?.pedestrians_waiting || 3)].map((_, i) => {
-            const isSafeToWalk = !isNSGreen;
+            const isSafeToWalk = showNSPedWalk;
             const pX = isSafeToWalk ? 430 + ((i * 35 + simStep * pedSpeed * 10) % 130) : 425;
             return (
               <g key={`ped_n_${i}`} transform={`translate(${pX}, 170)`} style={{ transition: 'transform 0.05s linear' }}>
@@ -578,9 +583,9 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             );
           })}
 
-          {/* South Crosswalk Pedestrians */}
+          {/* South Crosswalk Pedestrians (5s WALK window) */}
           {[...Array(approaches.S?.pedestrians_waiting || 3)].map((_, i) => {
-            const isSafeToWalk = !isNSGreen;
+            const isSafeToWalk = showNSPedWalk;
             const pX = isSafeToWalk ? 570 - ((i * 35 + simStep * pedSpeed * 10) % 130) : 575;
             return (
               <g key={`ped_s_${i}`} transform={`translate(${pX}, 330)`} style={{ transition: 'transform 0.05s linear' }}>
@@ -590,9 +595,9 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             );
           })}
 
-          {/* East Crosswalk Pedestrians */}
+          {/* East Crosswalk Pedestrians (5s WALK window) */}
           {[...Array(approaches.E?.pedestrians_waiting || 2)].map((_, i) => {
-            const isSafeToWalk = !isEWGreen;
+            const isSafeToWalk = showEWPedWalk;
             const pY = isSafeToWalk ? 190 + ((i * 35 + simStep * pedSpeed * 10) % 120) : 185;
             return (
               <g key={`ped_e_${i}`} transform={`translate(590, ${pY})`} style={{ transition: 'transform 0.05s linear' }}>
@@ -602,9 +607,9 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             );
           })}
 
-          {/* West Crosswalk Pedestrians */}
+          {/* West Crosswalk Pedestrians (5s WALK window) */}
           {[...Array(approaches.W?.pedestrians_waiting || 2)].map((_, i) => {
-            const isSafeToWalk = !isEWGreen;
+            const isSafeToWalk = showEWPedWalk;
             const pY = isSafeToWalk ? 310 - ((i * 35 + simStep * pedSpeed * 10) % 120) : 315;
             return (
               <g key={`ped_w_${i}`} transform={`translate(410, ${pY})`} style={{ transition: 'transform 0.05s linear' }}>

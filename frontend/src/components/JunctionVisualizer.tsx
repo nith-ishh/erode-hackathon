@@ -57,9 +57,9 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
     }
   };
 
-  // Base Speed formulas: Super ultra-slow crawl mode (0.6 px/sec) so all vehicles move very very slowly
-  const flowSpeed = 6.0 * speedMultiplier;
-  const pedSpeed = 4.0 * speedMultiplier;
+  // Base Speed formulas: Ultra-calm presentation speed so vehicles never zoom or run too fast
+  const flowSpeed = 1.2 * speedMultiplier;
+  const pedSpeed = 0.8 * speedMultiplier;
 
   // Distinct Realistic Speed Multipliers per Vehicle Category:
   // - motorcycle: 1.3x (nimble 2-wheeler)

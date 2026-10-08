@@ -57,9 +57,36 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
     }
   };
 
-  // Speed formulas: Regular vehicles 2x slower (0.5x flowSpeed), ambulance maintains fast priority speed
-  const flowSpeed = 0.5 * speedMultiplier;
-  const pedSpeed = 0.25 * speedMultiplier;
+  // Base Speed formulas: Super-calm presentation pacing for 0.5x, 1x, 2x speed modes
+  const flowSpeed = 0.35 * speedMultiplier;
+  const pedSpeed = 0.18 * speedMultiplier;
+
+  // Distinct Realistic Speed Multipliers per Vehicle Category:
+  // - motorcycle: 1.35x (nimble, fast 2-wheeler)
+  // - car: 1.0x (standard car flow speed)
+  // - auto: 0.85x (medium auto-rickshaw speed)
+  // - bus: 0.70x (heavy passenger bus)
+  // - truck: 0.55x (heavy cargo truck)
+  // - emergency (siren ON): 2.5x (priority emergency corridor pass, NEVER STOPS)
+  const getSpeedForVType = (vtype: string, sirenOn: boolean) => {
+    if (vtype === 'emergency') {
+      return sirenOn ? flowSpeed * 2.5 : flowSpeed * 1.0;
+    }
+    switch (vtype) {
+      case 'motorcycle':
+        return flowSpeed * 1.35;
+      case 'car':
+        return flowSpeed * 1.0;
+      case 'auto':
+        return flowSpeed * 0.85;
+      case 'bus':
+        return flowSpeed * 0.70;
+      case 'truck':
+        return flowSpeed * 0.55;
+      default:
+        return flowSpeed * 1.0;
+    }
+  };
 
   // Signal phase status: 0/1 = NS Green/Yellow, 2/3 = EW Green/Yellow (Force NS Green on Emergency)
   const isNSGreen = isEmergency || finalPhase === 0;
@@ -554,8 +581,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             const movesContinuously = (isAmbulance && isEmergency) || isNSGreen;
 
             if (movesContinuously) {
-              // Siren ON: Ambulance maintains fast priority speed (4.4x relative to 2x slower traffic), NEVER stopping!
-              const currentSpeed = (isAmbulance && isEmergency) ? flowSpeed * 4.4 : flowSpeed;
+              const currentSpeed = getSpeedForVType(vtype, isEmergency);
               const startOffset = -30 + idx * 45;
               vehY = ((startOffset + simStep * currentSpeed) % 540) - 20;
             } else {
@@ -570,9 +596,9 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             const laneX = idx % 2 === 0 ? 515 : 540;
             let vehY: number;
             if (isNSGreen) {
-              // GREEN SIGNAL: Drive at calm, ultra-slow pitch speed North bound!
+              const currentSpeed = getSpeedForVType(vtype, isEmergency);
               const startOffset = -30 + idx * 45;
-              vehY = 520 - ((startOffset + simStep * flowSpeed) % 540);
+              vehY = 520 - ((startOffset + simStep * currentSpeed) % 540);
             } else {
               // RED SIGNAL: Queue up SAFELY behind Stopline Y=340
               vehY = 370 + Math.floor(idx / 2) * 55;
@@ -585,9 +611,9 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             const laneY = idx % 2 === 0 ? 270 : 295;
             let vehX: number;
             if (isEWGreen) {
-              // GREEN SIGNAL: Drive at calm, ultra-slow pitch speed East bound!
+              const currentSpeed = getSpeedForVType(vtype, isEmergency);
               const startOffset = -30 + idx * 45;
-              vehX = ((startOffset + simStep * flowSpeed) % 1040) - 20;
+              vehX = ((startOffset + simStep * currentSpeed) % 1040) - 20;
             } else {
               // RED SIGNAL: Queue up SAFELY behind Stopline X=400
               vehX = 370 - Math.floor(idx / 2) * 55;
@@ -600,9 +626,9 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             const laneY = idx % 2 === 0 ? 205 : 230;
             let vehX: number;
             if (isEWGreen) {
-              // GREEN SIGNAL: Drive at calm, ultra-slow pitch speed West bound!
+              const currentSpeed = getSpeedForVType(vtype, isEmergency);
               const startOffset = -30 + idx * 45;
-              vehX = 1020 - ((startOffset + simStep * flowSpeed) % 1040);
+              vehX = 1020 - ((startOffset + simStep * currentSpeed) % 1040);
             } else {
               // RED SIGNAL: Queue up SAFELY behind Stopline X=600
               vehX = 630 + Math.floor(idx / 2) * 55;

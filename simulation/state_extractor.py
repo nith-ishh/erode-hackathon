@@ -113,40 +113,56 @@ class StateExtractor:
         return state
 
     def extract_mock_state(self, step: int = 0) -> Dict[str, Any]:
-        """Generates realistic state data for testing or mock fallback mode."""
+        """Generates realistic dynamically fluctuating state data for live telemetry and AI dashboard."""
         import random
-        random.seed(step)
+        import math
+        
+        # Smooth sinusoidal traffic wave with realistic micro-fluctuations per step
+        t = float(step)
         
         state = {
-            "timestamp": float(step),
+            "timestamp": t,
             "junction_id": "J1",
-            "current_phase": (step // 30) % 4,
+            "current_phase": (int(t) // 15) % 4,
             "approaches": {},
             "total_pcu_queue": 0.0,
             "total_pcu_delay": 0.0,
             "total_vehicles": 0,
             "total_pedestrians_waiting": 0,
-            "emergency_present": (step > 120 and step < 180),
+            "emergency_present": False,
             "emergency_details": []
         }
 
-        if state["emergency_present"]:
-            state["emergency_details"].append({
-                "id": "emergency_1",
-                "edge": "N2J1",
-                "position": 180.0,
-                "speed": 15.0
-            })
+        base_queues = {
+            "N": max(1.5, round(4.5 + 2.5 * math.sin(t * 0.12) + random.uniform(-0.4, 0.4), 1)),
+            "S": max(1.2, round(3.8 + 2.1 * math.sin(t * 0.12 + 1.2) + random.uniform(-0.3, 0.3), 1)),
+            "E": max(1.0, round(5.2 + 3.0 * math.sin(t * 0.12 + 2.4) + random.uniform(-0.5, 0.5), 1)),
+            "W": max(1.4, round(4.1 + 2.2 * math.sin(t * 0.12 + 3.6) + random.uniform(-0.4, 0.4), 1))
+        }
+
+        base_peds = {
+            "N": max(0, int(3 + 2 * math.sin(t * 0.08) + random.randint(-1, 1))),
+            "S": max(0, int(4 + 2 * math.sin(t * 0.08 + 1.5) + random.randint(-1, 1))),
+            "E": max(0, int(2 + 2 * math.sin(t * 0.08 + 3.0) + random.randint(-1, 1))),
+            "W": max(0, int(3 + 2 * math.sin(t * 0.08 + 4.5) + random.randint(-1, 1)))
+        }
 
         for app in self.approaches:
-            veh_count = random.randint(3, 15)
-            queue_count = random.randint(1, veh_count)
-            vtype_counts = {"car": int(veh_count*0.4), "motorcycle": int(veh_count*0.4), "bus": int(veh_count*0.1), "auto": int(veh_count*0.1)}
+            pcu_q = base_queues[app]
+            peds = base_peds[app]
+            veh_count = int(max(4, pcu_q * 1.6 + random.randint(0, 2)))
+            queue_count = int(max(1, pcu_q * 1.1))
+            
+            vtype_counts = {
+                "car": max(2, int(veh_count * 0.45)),
+                "motorcycle": max(2, int(veh_count * 0.35)),
+                "bus": 1 if app in ["N", "E"] and step % 4 == 0 else 0,
+                "truck": 1 if app in ["S", "W"] and step % 5 == 0 else 0,
+                "auto": max(1, int(veh_count * 0.15))
+            }
             
             pcu_count = self.pcu_calc.calculate_pcu_count(vtype_counts)
-            pcu_queue = pcu_count * (queue_count / max(1, veh_count))
-            pcu_delay = pcu_queue * random.uniform(5.0, 20.0)
-            peds = random.randint(0, 5)
+            pcu_delay = round(pcu_q * (12.0 + 4.0 * math.sin(t * 0.05)), 2)
 
             state["approaches"][app] = {
                 "edge_id": f"{app}2J1",
@@ -154,12 +170,12 @@ class StateExtractor:
                 "queue_count": queue_count,
                 "vtype_counts": vtype_counts,
                 "pcu_count": pcu_count,
-                "pcu_queue": round(pcu_queue, 2),
-                "pcu_delay": round(pcu_delay, 2),
+                "pcu_queue": pcu_q,
+                "pcu_delay": pcu_delay,
                 "pedestrians_waiting": peds
             }
 
-            state["total_pcu_queue"] += pcu_queue
+            state["total_pcu_queue"] += pcu_q
             state["total_pcu_delay"] += pcu_delay
             state["total_vehicles"] += veh_count
             state["total_pedestrians_waiting"] += peds

@@ -25,16 +25,16 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
   emergencyActive = false,
   onToggleEmergency
 }) => {
-  const [speedMultiplier, setSpeedMultiplier] = useState<number>(0.25); // Ultra-slow presentation crawl
+  const [speedMultiplier, setSpeedMultiplier] = useState<number>(0.25); // Calm normal speed
   const [localEmergency, setLocalEmergency] = useState<boolean>(false);
   const [animTime, setAnimTime] = useState<number>(0);
 
-  // 60 FPS continuous delta-time animation clock
+  // 60 FPS continuous delta-time animation clock (bounded delta prevents any data overload speed jumps)
   useEffect(() => {
     let animId: number;
     let lastTime = performance.now();
     const updateLoop = (now: number) => {
-      const delta = Math.min((now - lastTime) / 1000, 0.1);
+      const delta = Math.min((now - lastTime) / 1000, 0.05); // Cap max delta to 50ms to prevent jumps on data overload
       lastTime = now;
       setAnimTime((prev) => prev + delta);
       animId = requestAnimationFrame(updateLoop);
@@ -47,7 +47,12 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
   const isEmergency = emergencyActive || localEmergency || stateData?.state?.emergency_present || false;
   const breakItActive = stateData?.safety_shield?.break_it_active || false;
   const fallbackActive = stateData?.safety_shield?.fallback_active || breakItActive;
+
+  // Controlled presentation velocities (px/sec):
+  const flowSpeed = 16 * speedMultiplier; // Base car speed: ~4 px/sec
+  const pedSpeed = 8 * speedMultiplier;
   const simStep = animTime * 0.05;
+  const smoothTime = animTime % 1000;
 
   const handleTriggerAmbulanceClick = () => {
     if (onToggleEmergency) {
@@ -57,26 +62,22 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
     }
   };
 
-  // Ultra-Calm Presentation Velocities (in px/sec):
-  const flowSpeed = 12 * speedMultiplier; // Base car velocity: ~3 px/sec (Ultra Slow Crawl)
-  const pedSpeed = 6 * speedMultiplier;
-
   // Distinct Speed Hierarchy:
-  // - motorcycle: 1.3x
+  // - motorcycle: 1.25x
   // - car: 1.0x
   // - auto: 0.8x
   // - bus: 0.65x
   // - truck: 0.5x
-  // - emergency (siren OFF): 1.0x (obeys standard traffic rules)
-  // - emergency (siren ON): 2.8x (clears high-speed corridor pass faster than all cars)
+  // - emergency (siren OFF): 1.0x (obeys standard traffic rules, normal car speed)
+  // - emergency (siren ON): 2.4x (clears high-speed corridor pass faster than cars at normal emergency pace)
   const getSpeedForVType = (vtype: string, sirenOn: boolean) => {
     const norm = (vtype || '').toLowerCase();
     if (norm === 'emergency' || norm === 'ambulance') {
-      return sirenOn ? flowSpeed * 2.8 : flowSpeed * 1.0;
+      return sirenOn ? flowSpeed * 2.4 : flowSpeed * 1.0;
     }
     switch (norm) {
       case 'motorcycle':
-        return flowSpeed * 1.3;
+        return flowSpeed * 1.25;
       case 'car':
         return flowSpeed * 1.0;
       case 'auto':
@@ -590,7 +591,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
 
             if (movesContinuously) {
               const startOffset = isAmbulance ? -40 : (-40 + idx * 75);
-              vehY = ((startOffset + animTime * currentSpeed) % 580) - 30;
+              vehY = ((startOffset + smoothTime * currentSpeed) % 580) - 30;
             } else {
               // RED SIGNAL: Queue up SAFELY behind Stopline Y=160
               // Ambulance (idx=0) queued right at Stopline Y=135 at the front of the road
@@ -606,7 +607,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             if (isNSGreen) {
               const currentSpeed = getSpeedForVType(vtype, isEmergency);
               const startOffset = -60 + idx * 75;
-              vehY = 530 - ((startOffset + animTime * currentSpeed) % 600);
+              vehY = 530 - ((startOffset + smoothTime * currentSpeed) % 600);
             } else {
               // RED SIGNAL: Queue up SAFELY behind Stopline Y=340
               vehY = 370 + Math.floor(idx / 2) * 55;
@@ -621,7 +622,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             if (isEWGreen) {
               const currentSpeed = getSpeedForVType(vtype, isEmergency);
               const startOffset = -60 + idx * 110;
-              vehX = ((startOffset + animTime * currentSpeed) % 1100) - 30;
+              vehX = ((startOffset + smoothTime * currentSpeed) % 1100) - 30;
             } else {
               // RED SIGNAL: Queue up SAFELY behind Stopline X=400
               vehX = 370 - Math.floor(idx / 2) * 55;
@@ -636,7 +637,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             if (isEWGreen) {
               const currentSpeed = getSpeedForVType(vtype, isEmergency);
               const startOffset = -60 + idx * 110;
-              vehX = 1030 - ((startOffset + animTime * currentSpeed) % 1100);
+              vehX = 1030 - ((startOffset + smoothTime * currentSpeed) % 1100);
             } else {
               // RED SIGNAL: Queue up SAFELY behind Stopline X=600
               vehX = 630 + Math.floor(idx / 2) * 55;

@@ -26,6 +26,13 @@ from counterfactual.comparison import CounterfactualTwinRunner
 from backend.app.database.db import TrafficDatabase
 from scripts.generate_demand import generate_route_file
 
+TRACI_AVAILABLE = False
+try:
+    import traci
+    TRACI_AVAILABLE = True
+except ImportError:
+    traci = None
+
 class SimulationService:
     def __init__(self):
         self.controller = SUMOTraCIController(label="service_main")
@@ -86,7 +93,7 @@ class SimulationService:
         self.step_count += 1
 
         # 1. Extract raw traffic state
-        if self.controller.is_connected:
+        if self.controller.is_connected and TRACI_AVAILABLE and traci is not None:
             raw_state = self.extractor.extract_state_traci(traci, label="service_main")
         else:
             raw_state = self.extractor.extract_mock_state(self.step_count)

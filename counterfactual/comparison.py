@@ -18,6 +18,13 @@ from decision.safety_shield import SafetyShield
 from decision.fallback_controller import FallbackController
 from counterfactual.metrics import MetricsCalculator
 
+TRACI_AVAILABLE = False
+try:
+    import traci
+    TRACI_AVAILABLE = True
+except ImportError:
+    traci = None
+
 class CounterfactualTwinRunner:
     def __init__(self):
         self.extractor = StateExtractor()
@@ -34,7 +41,7 @@ class CounterfactualTwinRunner:
         history = []
         last_state = {}
         for s in range(steps):
-            if started and controller.is_connected:
+            if started and controller.is_connected and TRACI_AVAILABLE and traci is not None:
                 state = self.extractor.extract_state_traci(traci, label="twin_ai")
             else:
                 state = self.extractor.extract_mock_state(s)
@@ -69,7 +76,7 @@ class CounterfactualTwinRunner:
         
         history = []
         for s in range(steps):
-            if started and controller.is_connected:
+            if started and controller.is_connected and TRACI_AVAILABLE and traci is not None:
                 state = self.extractor.extract_state_traci(traci, label="twin_baseline")
             else:
                 # Add extra delay to mock state for fixed time baseline

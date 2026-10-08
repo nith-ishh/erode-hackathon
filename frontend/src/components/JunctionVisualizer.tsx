@@ -81,16 +81,48 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
       case 'emergency':
         return (
           <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
-            <rect x="-12" y="-22" width="24" height="44" rx="4" fill="#ffffff" stroke="#ef4444" strokeWidth="2" />
-            <rect x="-3" y="-8" width="6" height="16" fill="#ef4444" />
-            <rect x="-8" y="-3" width="16" height="6" fill="#ef4444" />
-            <rect x="-9" y="-18" width="18" height="6" fill="#1e293b" rx="1" />
-            <circle cx="-5" cy="-2" r="3" fill="#38bdf8">
-              <animate attributeName="opacity" values="1;0.2;1" dur="0.5s" repeatCount="indefinite" />
+            {/* Siren Pulsing Emergency Halo */}
+            <circle cx="0" cy="0" r="32" fill="rgba(239, 68, 68, 0.25)">
+              <animate attributeName="r" values="24;36;24" dur="0.6s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.4;0.1;0.4" dur="0.6s" repeatCount="indefinite" />
             </circle>
-            <circle cx="5" cy="-2" r="3" fill="#ef4444">
-              <animate attributeName="opacity" values="0.2;1;0.2" dur="0.5s" repeatCount="indefinite" />
+
+            {/* Main White Ambulance Body */}
+            <rect x="-14" y="-25" width="28" height="50" rx="5" fill="#ffffff" stroke="#dc2626" strokeWidth="2.5" />
+
+            {/* Front Hood & Windshield */}
+            <rect x="-11" y="-21" width="22" height="8" fill="#0f172a" rx="2" stroke="#38bdf8" strokeWidth="0.8" />
+            {/* Side Mirrors */}
+            <rect x="-17" y="-18" width="3" height="6" fill="#dc2626" rx="1" />
+            <rect x="14" y="-18" width="3" height="6" fill="#dc2626" rx="1" />
+
+            {/* Medical Red Cross Emblem (Roof Center) */}
+            <g transform="translate(0, 3)">
+              <rect x="-3" y="-10" width="6" height="20" fill="#dc2626" rx="1" />
+              <rect x="-10" y="-3" width="20" height="6" fill="#dc2626" rx="1" />
+            </g>
+
+            {/* Alternating LED Siren Lightbar */}
+            <rect x="-10" y="-10" width="20" height="4" fill="#0f172a" rx="1" />
+            {/* Left Cyan Strobe */}
+            <circle cx="-6" cy="-8" r="3.5" fill="#38bdf8">
+              <animate attributeName="fill" values="#38bdf8;#0284c7;#38bdf8" dur="0.3s" repeatCount="indefinite" />
+              <animate attributeName="r" values="3.5;4.5;3.5" dur="0.3s" repeatCount="indefinite" />
             </circle>
+            {/* Right Red Strobe */}
+            <circle cx="6" cy="-8" r="3.5" fill="#ef4444">
+              <animate attributeName="fill" values="#ef4444;#b91c1c;#ef4444" dur="0.3s" repeatCount="indefinite" />
+              <animate attributeName="r" values="4.5;3.5;4.5" dur="0.3s" repeatCount="indefinite" />
+            </circle>
+
+            {/* High-Vis Red Side Stripes */}
+            <rect x="-14" y="-12" width="2" height="30" fill="#dc2626" />
+            <rect x="12" y="-12" width="2" height="30" fill="#dc2626" />
+
+            {/* Bold 108 AMBULANCE Label */}
+            <text x="0" y="21" textAnchor="middle" fill="#dc2626" fontSize="6.5" fontWeight="900" letterSpacing="0.5">
+              108 AMBULANCE
+            </text>
           </g>
         );
       case 'bus':

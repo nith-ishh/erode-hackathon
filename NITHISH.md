@@ -39,8 +39,17 @@
 
 ---
 
-## 🎤 Nithish's Demo Presentation Workflow (Pitch Step 4)
+## 🎤 Nithish's Demo Presentation Workflow & Pitch Narrative
 
-1. **Trigger Emergency Corridor**: Click **`[ ACTIVATE AMBULANCE CORRIDOR ]`** in the Green Wave panel.
-2. **Show Priority Green Signal**: Demonstrate that the approaching ambulance is granted immediate green pre-emption at Junction $J_1$.
-3. **Show Multi-Junction Coordination**: Point out how signal offsets cascade dynamically down the corridor ($J_1 \rightarrow J_2 \rightarrow J_3$) to create a non-stop green wave for emergency vehicles without gridlocking surrounding traffic.
+### Real-World Rush Hour Pitch Narrative (Say this during Jury Pitch):
+> “Let me explain our system through a real-world scenario. Imagine a busy four-way junction during evening rush hour. Our system observes that the North–South direction has a much larger traffic queue than the East–West direction. The reinforcement learning agent analyzes this information and proposes giving North–South more green time to reduce congestion. Before executing this decision, our Safety Shield verifies that the signal transition is safe and legally allowed. Once approved, the traffic signal changes, vehicles move, and the system continuously observes the updated traffic conditions to make further decisions.
+> 
+> At the same time, our Live Counterfactual Twin evaluates the same traffic demand using traditional fixed-time control. Our dashboard compares both controllers using average delay, queue length and throughput, allowing us to measure the actual impact of our AI. If an ambulance is detected, our emergency module requests priority through the Safety Shield and coordinates upcoming junctions to establish an emergency green corridor.
+> 
+> Therefore, our system does not simply display traffic or change lights randomly. It observes traffic, makes adaptive decisions, validates safety, executes the approved action and measures the outcome against a fixed-time baseline.”
+
+### 4-Step Hackathon Live Action Sequence:
+1. **Explain Rush Hour Flow**: Show North-South queue build-up and PPO RL phase adaptivity.
+2. **Trigger Emergency Corridor**: Click **`[ ACTIVATE AMBULANCE CORRIDOR ]`** in the Green Wave panel.
+3. **Show Priority Green Signal**: Demonstrate that the approaching ambulance is granted immediate green pre-emption at Junction $J_1$.
+4. **Show Multi-Junction Coordination**: Point out how signal offsets cascade dynamically down the corridor ($J_1 \rightarrow J_2 \rightarrow J_3$) to create a non-stop green wave for emergency vehicles without gridlocking surrounding traffic.

@@ -140,7 +140,7 @@ export const App: React.FC = () => {
     }
   };
 
-  const finalPhase = stateData?.final_phase ?? 0;
+  const finalPhase = stateData?.final_phase;
 
   return (
     <div className="dashboard-container">

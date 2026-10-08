@@ -55,10 +55,10 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
   const pedSpeed = 1.0 * speedMultiplier;
 
   // Signal phase status: 0/1 = NS Green/Yellow, 2/3 = EW Green/Yellow
-  // Respect backend AI state, or auto-cycle phase smoothly during standalone telemetry loops
-  const activePhase = (stateData?.final_phase !== undefined && stateData?.final_phase !== null)
+  // Respect live backend telemetry phase when connected, or auto-cycle phases smoothly (0->1->2->3) during demo loops
+  const activePhase = (stateData && stateData.final_phase !== undefined && stateData.final_phase !== null)
     ? stateData.final_phase
-    : (finalPhase !== undefined && finalPhase !== null ? finalPhase : Math.floor(simStep / 70) % 4);
+    : Math.floor(simStep / 70) % 4;
 
   const isNSGreen = activePhase === 0;
   const isNSYellow = activePhase === 1;

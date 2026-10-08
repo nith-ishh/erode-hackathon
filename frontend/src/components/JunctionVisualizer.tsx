@@ -25,7 +25,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
   emergencyActive = false,
   onToggleEmergency
 }) => {
-  const [speedMultiplier, setSpeedMultiplier] = useState<number>(0.5); // High refresh rate default
+  const [speedMultiplier, setSpeedMultiplier] = useState<number>(1); // Standard default speed
   const [localEmergency, setLocalEmergency] = useState<boolean>(false);
   const [animFrame, setAnimFrame] = useState<number>(0);
 
@@ -45,7 +45,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
   const breakItActive = stateData?.safety_shield?.break_it_active || false;
   const fallbackActive = stateData?.safety_shield?.fallback_active || breakItActive;
   const rawStep = stateData?.step || 0;
-  const simStep = rawStep * 5 + animFrame * 0.25;
+  const simStep = rawStep + animFrame * 0.04;
 
   const handleTriggerAmbulanceClick = () => {
     if (onToggleEmergency) {
@@ -55,9 +55,9 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
     }
   };
 
-  // Speed formulas (ultra-slow default, fast for emergency ambulance)
-  const flowSpeed = 6 * speedMultiplier;
-  const pedSpeed = 2.5 * speedMultiplier;
+  // Speed formulas (smooth, natural pacing for 0.5x, 1x, 2x speeds)
+  const flowSpeed = 1.8 * speedMultiplier;
+  const pedSpeed = 0.7 * speedMultiplier;
 
   // Signal phase status: 0/1 = NS Green/Yellow, 2/3 = EW Green/Yellow (Force NS Green on Emergency)
   const isNSGreen = isEmergency || finalPhase === 0;
@@ -248,24 +248,9 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             <span>{isEmergency ? '🚨 SIREN ON: URGENT EMERGENCY' : '🔔 SIREN OFF: ROUTINE MODE'}</span>
           </button>
 
-          {/* Speed Control Selector for Jury Presentation & High-FPS Refresh */}
+          {/* Speed Control Selector (0.5x, 1x, 2x) */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(15, 23, 42, 0.8)', padding: '0.25rem 0.5rem', borderRadius: '0.5rem', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-            <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, marginRight: '0.2rem' }}>Refresh Rate:</span>
-            <button
-              onClick={() => setSpeedMultiplier(0.3)}
-              style={{
-                background: speedMultiplier === 0.3 ? 'var(--accent-cyan)' : 'transparent',
-                color: speedMultiplier === 0.3 ? '#090d16' : '#94a3b8',
-                border: 'none',
-                borderRadius: '0.3rem',
-                padding: '0.2rem 0.5rem',
-                fontSize: '0.75rem',
-                fontWeight: 800,
-                cursor: 'pointer'
-              }}
-            >
-              🚗 Pitch Mode (0.3x)
-            </button>
+            <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, marginRight: '0.2rem' }}>Speed:</span>
             <button
               onClick={() => setSpeedMultiplier(0.5)}
               style={{
@@ -273,28 +258,43 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
                 color: speedMultiplier === 0.5 ? '#090d16' : '#94a3b8',
                 border: 'none',
                 borderRadius: '0.3rem',
-                padding: '0.2rem 0.5rem',
+                padding: '0.25rem 0.6rem',
                 fontSize: '0.75rem',
                 fontWeight: 800,
                 cursor: 'pointer'
               }}
             >
-              ⚡ Fast 60FPS (0.5x)
+              🚗 0.5x
             </button>
             <button
-              onClick={() => setSpeedMultiplier(1.0)}
+              onClick={() => setSpeedMultiplier(1)}
               style={{
-                background: speedMultiplier === 1.0 ? 'var(--accent-cyan)' : 'transparent',
-                color: speedMultiplier === 1.0 ? '#090d16' : '#94a3b8',
+                background: speedMultiplier === 1 ? 'var(--accent-cyan)' : 'transparent',
+                color: speedMultiplier === 1 ? '#090d16' : '#94a3b8',
                 border: 'none',
                 borderRadius: '0.3rem',
-                padding: '0.2rem 0.5rem',
+                padding: '0.25rem 0.6rem',
                 fontSize: '0.75rem',
                 fontWeight: 800,
                 cursor: 'pointer'
               }}
             >
-              🚀 Ultra-Fast (1.0x)
+              ⚡ 1x
+            </button>
+            <button
+              onClick={() => setSpeedMultiplier(2)}
+              style={{
+                background: speedMultiplier === 2 ? 'var(--accent-cyan)' : 'transparent',
+                color: speedMultiplier === 2 ? '#090d16' : '#94a3b8',
+                border: 'none',
+                borderRadius: '0.3rem',
+                padding: '0.25rem 0.6rem',
+                fontSize: '0.75rem',
+                fontWeight: 800,
+                cursor: 'pointer'
+              }}
+            >
+              🚀 2x
             </button>
           </div>
 

@@ -148,55 +148,55 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
           <g transform={transform} key={key} style={{ transition: 'transform 0.15s ease-out' }}>
             {/* Siren Pulsing Emergency Halo (Active ONLY when Siren is ON) */}
             {isEmergency && (
-              <circle cx="0" cy="0" r="34" fill="rgba(239, 68, 68, 0.35)">
-                <animate attributeName="r" values="26;38;26" dur="0.5s" repeatCount="indefinite" />
-                <animate attributeName="opacity" values="0.5;0.15;0.5" dur="0.5s" repeatCount="indefinite" />
+              <circle cx="0" cy="0" r="38" fill="rgba(239, 68, 68, 0.4)">
+                <animate attributeName="r" values="28;42;28" dur="0.4s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.6;0.15;0.6" dur="0.4s" repeatCount="indefinite" />
               </circle>
             )}
 
             {/* Main White Ambulance Body */}
-            <rect x="-14" y="-25" width="28" height="50" rx="5" fill="#ffffff" stroke={isEmergency ? "#dc2626" : "#2563eb"} strokeWidth="3" />
+            <rect x="-15" y="-27" width="30" height="54" rx="6" fill="#ffffff" stroke={isEmergency ? "#ef4444" : "#2563eb"} strokeWidth="3.5" />
 
-            {/* Front Hood & Windshield */}
-            <rect x="-11" y="-21" width="22" height="8" fill="#0f172a" rx="2" stroke="#38bdf8" strokeWidth="1" />
+            {/* Front Hood & Dark Windshield */}
+            <rect x="-12" y="-23" width="24" height="9" fill="#0f172a" rx="2" stroke="#38bdf8" strokeWidth="1.2" />
             {/* Side Mirrors */}
-            <rect x="-17" y="-18" width="3" height="6" fill={isEmergency ? "#dc2626" : "#2563eb"} rx="1" />
-            <rect x="14" y="-18" width="3" height="6" fill={isEmergency ? "#dc2626" : "#2563eb"} rx="1" />
+            <rect x="-18" y="-20" width="3" height="7" fill={isEmergency ? "#ef4444" : "#2563eb"} rx="1" />
+            <rect x="15" y="-20" width="3" height="7" fill={isEmergency ? "#ef4444" : "#2563eb"} rx="1" />
 
-            {/* Medical Red Cross Emblem (Roof Center - Bright Red) */}
-            <g transform="translate(0, 3)">
-              <rect x="-3" y="-10" width="6" height="20" fill="#ef4444" rx="1" />
-              <rect x="-10" y="-3" width="20" height="6" fill="#ef4444" rx="1" />
+            {/* Medical Red Cross Emblem (Roof Center - Bold Bright Red) */}
+            <g transform="translate(0, 4)">
+              <rect x="-3.5" y="-12" width="7" height="24" fill="#dc2626" rx="1.5" />
+              <rect x="-12" y="-3.5" width="24" height="7" fill="#dc2626" rx="1.5" />
             </g>
 
             {/* LED Siren Lightbar */}
-            <rect x="-10" y="-10" width="20" height="4" fill="#0f172a" rx="1" />
+            <rect x="-11" y="-11" width="22" height="5" fill="#0f172a" rx="1.5" />
             {isEmergency ? (
               <>
                 {/* Active Siren Flashing LED Strobes */}
-                <circle cx="-6" cy="-8" r="4" fill="#38bdf8">
-                  <animate attributeName="fill" values="#38bdf8;#0284c7;#38bdf8" dur="0.25s" repeatCount="indefinite" />
-                  <animate attributeName="r" values="4;5.5;4" dur="0.25s" repeatCount="indefinite" />
+                <circle cx="-6.5" cy="-8.5" r="4.5" fill="#38bdf8">
+                  <animate attributeName="fill" values="#38bdf8;#0284c7;#38bdf8" dur="0.2s" repeatCount="indefinite" />
+                  <animate attributeName="r" values="4.5;6;4.5" dur="0.2s" repeatCount="indefinite" />
                 </circle>
-                <circle cx="6" cy="-8" r="4" fill="#ef4444">
-                  <animate attributeName="fill" values="#ef4444;#b91c1c;#ef4444" dur="0.25s" repeatCount="indefinite" />
-                  <animate attributeName="r" values="5.5;4;5.5" dur="0.25s" repeatCount="indefinite" />
+                <circle cx="6.5" cy="-8.5" r="4.5" fill="#ef4444">
+                  <animate attributeName="fill" values="#ef4444;#b91c1c;#ef4444" dur="0.2s" repeatCount="indefinite" />
+                  <animate attributeName="r" values="6;4.5;6" dur="0.2s" repeatCount="indefinite" />
                 </circle>
               </>
             ) : (
               <>
-                {/* Standby Siren Lights (Siren OFF - Blue & Red LEDs ready) */}
-                <circle cx="-6" cy="-8" r="3.5" fill="#3b82f6" />
-                <circle cx="6" cy="-8" r="3.5" fill="#ef4444" />
+                {/* Standby Siren Lights (Siren OFF - Blue & Red LEDs) */}
+                <circle cx="-6.5" cy="-8.5" r="4" fill="#2563eb" />
+                <circle cx="6.5" cy="-8.5" r="4" fill="#dc2626" />
               </>
             )}
 
             {/* High-Vis Red Side Stripes */}
-            <rect x="-14" y="-12" width="3" height="30" fill="#ef4444" />
-            <rect x="11" y="-12" width="3" height="30" fill="#ef4444" />
+            <rect x="-15" y="-13" width="3" height="32" fill="#dc2626" />
+            <rect x="12" y="-13" width="3" height="32" fill="#dc2626" />
 
             {/* 108 AMBULANCE Status Label */}
-            <text x="0" y="21" textAnchor="middle" fill={isEmergency ? "#dc2626" : "#1e3a8a"} fontSize="6.5" fontWeight="900" letterSpacing="0.3">
+            <text x="0" y="23" textAnchor="middle" fill={isEmergency ? "#dc2626" : "#1e3a8a"} fontSize="7" fontWeight="900" letterSpacing="0.4">
               {isEmergency ? "🚨 108 URGENT" : "108 ROUTINE"}
             </text>
           </g>

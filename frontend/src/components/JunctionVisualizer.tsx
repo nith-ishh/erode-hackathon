@@ -299,8 +299,8 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             const laneX = idx % 2 === 0 ? 460 : 485;
             let vehY: number;
             if (isNSGreen) {
-              // GREEN SIGNAL: Drive smoothly South bound through intersection!
-              const flowSpeed = 25;
+              // GREEN SIGNAL: Drive smoothly at realistic speed South bound!
+              const flowSpeed = 9;
               const startOffset = -30 + idx * 45;
               vehY = ((startOffset + simStep * flowSpeed) % 540) - 20;
             } else {
@@ -315,8 +315,8 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             const laneX = idx % 2 === 0 ? 515 : 540;
             let vehY: number;
             if (isNSGreen) {
-              // GREEN SIGNAL: Drive smoothly North bound through intersection!
-              const flowSpeed = 25;
+              // GREEN SIGNAL: Drive smoothly at realistic speed North bound!
+              const flowSpeed = 9;
               const startOffset = -30 + idx * 45;
               vehY = 520 - ((startOffset + simStep * flowSpeed) % 540);
             } else {
@@ -331,8 +331,8 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             const laneY = idx % 2 === 0 ? 270 : 295;
             let vehX: number;
             if (isEWGreen) {
-              // GREEN SIGNAL: Drive smoothly East bound through intersection!
-              const flowSpeed = 25;
+              // GREEN SIGNAL: Drive smoothly at realistic speed East bound!
+              const flowSpeed = 9;
               const startOffset = -30 + idx * 45;
               vehX = ((startOffset + simStep * flowSpeed) % 1040) - 20;
             } else {
@@ -347,8 +347,8 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             const laneY = idx % 2 === 0 ? 205 : 230;
             let vehX: number;
             if (isEWGreen) {
-              // GREEN SIGNAL: Drive smoothly West bound through intersection!
-              const flowSpeed = 25;
+              // GREEN SIGNAL: Drive smoothly at realistic speed West bound!
+              const flowSpeed = 9;
               const startOffset = -30 + idx * 45;
               vehX = 1020 - ((startOffset + simStep * flowSpeed) % 1040);
             } else {
@@ -362,48 +362,48 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           {/* ANIMATED PEDESTRIANS WALKING ON SAFE CROSSWALKS */}
           {/* ========================================================================= */}
 
-          {/* North Crosswalk Pedestrians (Walks safely when NS Signal is RED) */}
+          {/* North Crosswalk Pedestrians (Walks at natural realistic pace when NS Signal is RED) */}
           {[...Array(approaches.N?.pedestrians_waiting || 3)].map((_, i) => {
             const isSafeToWalk = !isNSGreen;
-            const pX = isSafeToWalk ? 430 + ((i * 35 + simStep * 12) % 130) : 425;
+            const pX = isSafeToWalk ? 430 + ((i * 35 + simStep * 4) % 130) : 425;
             return (
-              <g key={`ped_n_${i}`} transform={`translate(${pX}, 170)`} style={{ transition: 'all 0.5s ease' }}>
+              <g key={`ped_n_${i}`} transform={`translate(${pX}, 170)`} style={{ transition: 'all 0.8s linear' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
                 <circle cx="0" cy="-6" r="3" fill="#fbbf24" />
               </g>
             );
           })}
 
-          {/* South Crosswalk Pedestrians (Walks safely when NS Signal is RED) */}
+          {/* South Crosswalk Pedestrians (Walks at natural realistic pace when NS Signal is RED) */}
           {[...Array(approaches.S?.pedestrians_waiting || 3)].map((_, i) => {
             const isSafeToWalk = !isNSGreen;
-            const pX = isSafeToWalk ? 570 - ((i * 35 + simStep * 12) % 130) : 575;
+            const pX = isSafeToWalk ? 570 - ((i * 35 + simStep * 4) % 130) : 575;
             return (
-              <g key={`ped_s_${i}`} transform={`translate(${pX}, 330)`} style={{ transition: 'all 0.5s ease' }}>
+              <g key={`ped_s_${i}`} transform={`translate(${pX}, 330)`} style={{ transition: 'all 0.8s linear' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
                 <circle cx="0" cy="-6" r="3" fill="#fbbf24" />
               </g>
             );
           })}
 
-          {/* East Crosswalk Pedestrians (Walks safely when EW Signal is RED) */}
+          {/* East Crosswalk Pedestrians (Walks at natural realistic pace when EW Signal is RED) */}
           {[...Array(approaches.E?.pedestrians_waiting || 2)].map((_, i) => {
             const isSafeToWalk = !isEWGreen;
-            const pY = isSafeToWalk ? 190 + ((i * 35 + simStep * 12) % 120) : 185;
+            const pY = isSafeToWalk ? 190 + ((i * 35 + simStep * 4) % 120) : 185;
             return (
-              <g key={`ped_e_${i}`} transform={`translate(590, ${pY})`} style={{ transition: 'all 0.5s ease' }}>
+              <g key={`ped_e_${i}`} transform={`translate(590, ${pY})`} style={{ transition: 'all 0.8s linear' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
                 <circle cx="0" cy="-6" r="3" fill="#fbbf24" />
               </g>
             );
           })}
 
-          {/* West Crosswalk Pedestrians (Walks safely when EW Signal is RED) */}
+          {/* West Crosswalk Pedestrians (Walks at natural realistic pace when EW Signal is RED) */}
           {[...Array(approaches.W?.pedestrians_waiting || 2)].map((_, i) => {
             const isSafeToWalk = !isEWGreen;
-            const pY = isSafeToWalk ? 310 - ((i * 35 + simStep * 12) % 120) : 315;
+            const pY = isSafeToWalk ? 310 - ((i * 35 + simStep * 4) % 120) : 315;
             return (
-              <g key={`ped_w_${i}`} transform={`translate(410, ${pY})`} style={{ transition: 'all 0.5s ease' }}>
+              <g key={`ped_w_${i}`} transform={`translate(410, ${pY})`} style={{ transition: 'all 0.8s linear' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
                 <circle cx="0" cy="-6" r="3" fill="#fbbf24" />
               </g>

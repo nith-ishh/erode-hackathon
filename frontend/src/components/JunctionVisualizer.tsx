@@ -25,7 +25,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
   emergencyActive = false,
   onToggleEmergency
 }) => {
-  const [speedMultiplier, setSpeedMultiplier] = useState<number>(0.5); // Calm presentation speed default
+  const [speedMultiplier, setSpeedMultiplier] = useState<number>(0.5); // Super calm, readable presentation speed default
   const [localEmergency, setLocalEmergency] = useState<boolean>(false);
   const [animFrame, setAnimFrame] = useState<number>(0);
 
@@ -45,7 +45,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
   const breakItActive = stateData?.safety_shield?.break_it_active || false;
   const fallbackActive = stateData?.safety_shield?.fallback_active || breakItActive;
   const rawStep = stateData?.step || 0;
-  const simStep = rawStep + animFrame * 0.012;
+  const simStep = rawStep * 0.2 + animFrame * 0.003;
 
   const handleTriggerAmbulanceClick = () => {
     if (onToggleEmergency) {
@@ -55,9 +55,9 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
     }
   };
 
-  // Speed formulas (calm, slow, readable presentation speed for 0.5x, 1x, 2x speeds)
-  const flowSpeed = 0.6 * speedMultiplier;
-  const pedSpeed = 0.3 * speedMultiplier;
+  // Ultra-calm presentation speeds (4x slower) so every vehicle is clearly visible to jury
+  const flowSpeed = 0.15 * speedMultiplier;
+  const pedSpeed = 0.08 * speedMultiplier;
 
   // Signal phase status: 0/1 = NS Green/Yellow, 2/3 = EW Green/Yellow (Force NS Green on Emergency)
   const isNSGreen = isEmergency || finalPhase === 0;
@@ -552,8 +552,8 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             const movesContinuously = (isAmbulance && isEmergency) || isNSGreen;
 
             if (movesContinuously) {
-              // High-speed emergency pass when siren ON (3.5x speed multiplier), continuous motion
-              const currentSpeed = (isAmbulance && isEmergency) ? flowSpeed * 3.5 : flowSpeed;
+              // Siren ON: Ambulance moves continuously forward at steady priority pace (2.2x relative speed), NEVER stopping!
+              const currentSpeed = (isAmbulance && isEmergency) ? flowSpeed * 2.2 : flowSpeed;
               const startOffset = -30 + idx * 45;
               vehY = ((startOffset + simStep * currentSpeed) % 540) - 20;
             } else {

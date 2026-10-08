@@ -3,28 +3,38 @@
 
 ---
 
-## 🚦 System Architecture & Principles
-The system operates on the core principle:
-> **"AI proposes. JEV evaluates. Safety Shield decides whether it is safe. Signal controller executes only the safe action."**
+## 🚦 System Architecture & End-to-End Execution Flow
 
-```
-Traffic Dataset / Traffic Demand
-        ↓
-Traffic Demand Generator
-        ↓
-SUMO Digital Twin
-        ↓
-Traffic State Extraction through TraCI
-        ↓
-PCU-Weighted State
-        ↓
-PPO RL Brain (Stable-Baselines3)
-        ↓
-JEV Decision Evaluation Layer
-        ↓
-Safety Shield (11 Guardrail Rules)
-        ↓
-Safe Signal Action / SUMO Traffic Light
+Our AI-based adaptive traffic management system begins by collecting real-time traffic data from the SUMO simulation, including vehicle types, PCU-weighted queue lengths, waiting times, current signal phases, pedestrian waiting times, and emergency vehicle status. This information is converted into a junction state and provided to the reinforcement learning (PPO/DQN) agent, which selects the next signal action to reduce traffic delay and queue length. 
+
+Before execution, the **Safety Shield** validates the proposed action against predefined safety rules, including legal signal transitions, minimum green time, conflicting movements, and sensor or system faults. If the action is safe, it is applied to the actual traffic-light controller; otherwise, it is rejected, and the system follows the appropriate safe fallback procedure. 
+
+The simulation then advances, vehicles move, traffic conditions change, and the controller repeats this process continuously. In parallel, the same traffic demand is evaluated using a fixed-time controller, allowing our system to compare average delay, queue length, and throughput through a live monitoring dashboard. If an emergency vehicle is detected, the emergency module requests signal priority through the Safety Shield to coordinate a green corridor across successive junctions. Finally, the dashboard displays the traffic conditions, AI decisions and explanations, safety status, and measured performance against the fixed-time baseline, providing evidence of the system's effectiveness through simulation results rather than unsupported performance claims.
+
+### System Pipeline Diagram
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant SUMO as SUMO Digital Twin
+    participant State as TraCI State Extractor
+    participant PPO as PPO RL Brain / JEV
+    participant Shield as Safety Shield Guardrails
+    participant Signal as Traffic Signal Controller
+    participant Dash as Live Impact Dashboard
+
+    loop Every Control Interval (TraCI Telemetry)
+        SUMO->>State: Extract vehicle counts, PCU queues, peds & emergency status
+        State->>PPO: Construct PCU-weighted normalized Junction State
+        PPO->>Shield: Propose next phase action + confidence
+        alt Action passes all 11 Safety Shield rules
+            Shield->>Signal: Approve & Execute Safe Signal Action
+        else Sensor Fault / Violation Detected
+            Shield->>Signal: Reject action & Engage Fixed-Time Safe Fallback
+        end
+        Signal->>SUMO: Update Traffic Light States
+        SUMO->>Dash: Stream real-time metrics vs Fixed-Time twin baseline
+    end
 ```
 
 ---

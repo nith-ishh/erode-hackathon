@@ -15,7 +15,7 @@ sys.path.append(str(BASE_DIR))
 from rl.environment import TrafficSignalEnv
 from config import PPO_CONFIG
 
-def evaluate_ppo_policy(episodes: int = 1, steps_per_episode: int = 50, model_path: Optional[str] = None):
+def evaluate_ppo_policy(episodes: int = 1, steps_per_episode: int = 50, model_path: Optional[str] = None, mock_mode: bool = True):
     print("=" * 70)
     print("EVALUATING TRAINED PPO POLICY IN TRAFFIC SIGNAL ENVIRONMENT (MEMBER 1)")
     print("=" * 70)
@@ -36,7 +36,7 @@ def evaluate_ppo_policy(episodes: int = 1, steps_per_episode: int = 50, model_pa
     print(f"Loading trained model from: {target_model}")
     model = PPO.load(str(target_model))
 
-    env = TrafficSignalEnv(max_steps=steps_per_episode)
+    env = TrafficSignalEnv(max_steps=steps_per_episode, mock_mode=mock_mode)
     
     total_rewards = []
     total_switches = 0

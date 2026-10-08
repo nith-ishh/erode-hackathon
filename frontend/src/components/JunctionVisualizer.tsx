@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Siren, Shield, Activity } from 'lucide-react';
 
 interface ApproachData {
@@ -15,54 +15,21 @@ interface ApproachData {
 interface JunctionVisualizerProps {
   stateData: any;
   finalPhase: number;
-  emergencyActive?: boolean;
-  onToggleEmergency?: () => void;
 }
 
-export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
-  stateData,
-  finalPhase,
-  emergencyActive = false,
-  onToggleEmergency
-}) => {
-  const [speedMultiplier, setSpeedMultiplier] = useState<number>(0.2); // Ultra-slow default for pitch presentation!
-  const [localEmergency, setLocalEmergency] = useState<boolean>(false);
-
+export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateData, finalPhase }) => {
   const approaches: Record<string, ApproachData> = stateData?.state?.approaches || {};
-  const isEmergency = emergencyActive || localEmergency || stateData?.state?.emergency_present || false;
+  const isEmergency = stateData?.state?.emergency_present || false;
   const breakItActive = stateData?.safety_shield?.break_it_active || false;
   const fallbackActive = stateData?.safety_shield?.fallback_active || breakItActive;
   const simStep = stateData?.step || 0;
 
-  const handleTriggerAmbulanceClick = () => {
-    if (onToggleEmergency) {
-      onToggleEmergency();
-    } else {
-      setLocalEmergency(!localEmergency);
-    }
-  };
+  // Signal phase status: 0/1 = NS Green/Yellow, 2/3 = EW Green/Yellow
+  const isNSGreen = finalPhase === 0;
+  const isNSYellow = finalPhase === 1;
+  const isEWGreen = finalPhase === 2;
+  const isEWYellow = finalPhase === 3;
 
-  // Speed formulas (ultra-slow default, fast for emergency ambulance)
-  const flowSpeed = 6 * speedMultiplier;
-  const pedSpeed = 2.5 * speedMultiplier;
-
-  // Signal phase status: 0/1 = NS Green/Yellow, 2/3 = EW Green/Yellow (Force NS Green on Emergency)
-  const isNSGreen = isEmergency || finalPhase === 0;
-  const isNSYellow = !isEmergency && finalPhase === 1;
-  const isEWGreen = !isEmergency && finalPhase === 2;
-  const isEWYellow = !isEmergency && finalPhase === 3;
-
-  const getSignalColor = (isNS: boolean) => {
-    if (isNS) {
-      if (isNSGreen) return '#22c55e';
-      if (isNSYellow) return '#eab308';
-      return '#ef4444';
-    } else {
-      if (isEWGreen) return '#22c55e';
-      if (isEWYellow) return '#eab308';
-      return '#ef4444';
-    }
-  };
 
   // Helper to get vehicle list for an approach
   const getVehiclesForApproach = (appKey: string) => {
@@ -82,8 +49,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
       list.push(defaults[list.length % defaults.length]);
     }
 
-    // Always show ambulance in North approach vehicle stream
-    if (appKey === 'N' && !list.includes('emergency')) {
+    if (isEmergency && appKey === 'N' && !list.includes('emergency')) {
       list.unshift('emergency');
     }
 
@@ -98,59 +64,16 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
       case 'emergency':
         return (
           <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
-            {/* Siren Pulsing Emergency Halo (Active ONLY when Siren is ON) */}
-            {isEmergency && (
-              <circle cx="0" cy="0" r="32" fill="rgba(239, 68, 68, 0.25)">
-                <animate attributeName="r" values="24;36;24" dur="0.6s" repeatCount="indefinite" />
-                <animate attributeName="opacity" values="0.4;0.1;0.4" dur="0.6s" repeatCount="indefinite" />
-              </circle>
-            )}
-
-            {/* Main White Ambulance Body */}
-            <rect x="-14" y="-25" width="28" height="50" rx="5" fill="#ffffff" stroke={isEmergency ? "#dc2626" : "#64748b"} strokeWidth="2.5" />
-
-            {/* Front Hood & Windshield */}
-            <rect x="-11" y="-21" width="22" height="8" fill="#0f172a" rx="2" stroke="#38bdf8" strokeWidth="0.8" />
-            {/* Side Mirrors */}
-            <rect x="-17" y="-18" width="3" height="6" fill={isEmergency ? "#dc2626" : "#64748b"} rx="1" />
-            <rect x="14" y="-18" width="3" height="6" fill={isEmergency ? "#dc2626" : "#64748b"} rx="1" />
-
-            {/* Medical Red Cross Emblem (Roof Center) */}
-            <g transform="translate(0, 3)">
-              <rect x="-3" y="-10" width="6" height="20" fill={isEmergency ? "#dc2626" : "#475569"} rx="1" />
-              <rect x="-10" y="-3" width="20" height="6" fill={isEmergency ? "#dc2626" : "#475569"} rx="1" />
-            </g>
-
-            {/* LED Siren Lightbar */}
-            <rect x="-10" y="-10" width="20" height="4" fill="#0f172a" rx="1" />
-            {isEmergency ? (
-              <>
-                {/* Active Siren Flashing LED Strobes */}
-                <circle cx="-6" cy="-8" r="3.5" fill="#38bdf8">
-                  <animate attributeName="fill" values="#38bdf8;#0284c7;#38bdf8" dur="0.3s" repeatCount="indefinite" />
-                  <animate attributeName="r" values="3.5;4.5;3.5" dur="0.3s" repeatCount="indefinite" />
-                </circle>
-                <circle cx="6" cy="-8" r="3.5" fill="#ef4444">
-                  <animate attributeName="fill" values="#ef4444;#b91c1c;#ef4444" dur="0.3s" repeatCount="indefinite" />
-                  <animate attributeName="r" values="4.5;3.5;4.5" dur="0.3s" repeatCount="indefinite" />
-                </circle>
-              </>
-            ) : (
-              <>
-                {/* Standby Siren Lights (Siren OFF) */}
-                <circle cx="-6" cy="-8" r="3" fill="#64748b" />
-                <circle cx="6" cy="-8" r="3" fill="#64748b" />
-              </>
-            )}
-
-            {/* High-Vis Side Stripes */}
-            <rect x="-14" y="-12" width="2" height="30" fill={isEmergency ? "#dc2626" : "#64748b"} />
-            <rect x="12" y="-12" width="2" height="30" fill={isEmergency ? "#dc2626" : "#64748b"} />
-
-            {/* 108 AMBULANCE Status Label */}
-            <text x="0" y="21" textAnchor="middle" fill={isEmergency ? "#dc2626" : "#475569"} fontSize="6" fontWeight="900" letterSpacing="0.3">
-              {isEmergency ? "🚨 108 URGENT" : "108 ROUTINE"}
-            </text>
+            <rect x="-12" y="-22" width="24" height="44" rx="4" fill="#ffffff" stroke="#ef4444" strokeWidth="2" />
+            <rect x="-3" y="-8" width="6" height="16" fill="#ef4444" />
+            <rect x="-8" y="-3" width="16" height="6" fill="#ef4444" />
+            <rect x="-9" y="-18" width="18" height="6" fill="#1e293b" rx="1" />
+            <circle cx="-5" cy="-2" r="3" fill="#38bdf8">
+              <animate attributeName="opacity" values="1;0.2;1" dur="0.5s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="5" cy="-2" r="3" fill="#ef4444">
+              <animate attributeName="opacity" values="0.2;1;0.2" dur="0.5s" repeatCount="indefinite" />
+            </circle>
           </g>
         );
       case 'bus':
@@ -210,81 +133,6 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          {/* SIREN STATE TOGGLE BUTTON */}
-          <button
-            onClick={handleTriggerAmbulanceClick}
-            style={{
-              background: isEmergency
-                ? 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)'
-                : 'linear-gradient(135deg, #334155 0%, #1e293b 100%)',
-              color: 'white',
-              border: isEmergency ? '1px solid rgba(248, 113, 113, 0.8)' : '1px solid rgba(148, 163, 184, 0.4)',
-              borderRadius: '0.5rem',
-              padding: '0.5rem 1rem',
-              fontSize: '0.85rem',
-              fontWeight: 800,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              cursor: 'pointer',
-              boxShadow: isEmergency ? '0 0 20px rgba(239, 68, 68, 0.8)' : 'none',
-              transition: 'all 0.3s ease'
-            }}
-          >
-            <Siren className="w-4 h-4" />
-            <span>{isEmergency ? '🚨 SIREN ON: URGENT EMERGENCY' : '🔔 SIREN OFF: ROUTINE MODE'}</span>
-          </button>
-
-          {/* Speed Control Selector for Jury Presentation */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(15, 23, 42, 0.8)', padding: '0.25rem 0.5rem', borderRadius: '0.5rem', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-            <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, marginRight: '0.2rem' }}>Speed:</span>
-            <button
-              onClick={() => setSpeedMultiplier(0.1)}
-              style={{
-                background: speedMultiplier === 0.1 ? 'var(--accent-cyan)' : 'transparent',
-                color: speedMultiplier === 0.1 ? '#090d16' : '#94a3b8',
-                border: 'none',
-                borderRadius: '0.3rem',
-                padding: '0.2rem 0.5rem',
-                fontSize: '0.75rem',
-                fontWeight: 800,
-                cursor: 'pointer'
-              }}
-            >
-              🐢 Ultra-Slow (0.1x)
-            </button>
-            <button
-              onClick={() => setSpeedMultiplier(0.2)}
-              style={{
-                background: speedMultiplier === 0.2 ? 'var(--accent-cyan)' : 'transparent',
-                color: speedMultiplier === 0.2 ? '#090d16' : '#94a3b8',
-                border: 'none',
-                borderRadius: '0.3rem',
-                padding: '0.2rem 0.5rem',
-                fontSize: '0.75rem',
-                fontWeight: 800,
-                cursor: 'pointer'
-              }}
-            >
-              🚗 Pitch Mode (0.2x)
-            </button>
-            <button
-              onClick={() => setSpeedMultiplier(0.5)}
-              style={{
-                background: speedMultiplier === 0.5 ? 'var(--accent-cyan)' : 'transparent',
-                color: speedMultiplier === 0.5 ? '#090d16' : '#94a3b8',
-                border: 'none',
-                borderRadius: '0.3rem',
-                padding: '0.2rem 0.5rem',
-                fontSize: '0.75rem',
-                fontWeight: 800,
-                cursor: 'pointer'
-              }}
-            >
-              ⚡ Normal (0.5x)
-            </button>
-          </div>
-
           <span className={`badge ${fallbackActive ? 'badge-red' : 'badge-green'}`} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
             <Shield className="w-4 h-4" />
             {fallbackActive ? 'FALLBACK MODE ACTIVE' : 'NORMAL AI ADAPTIVE CONTROL'}
@@ -293,21 +141,14 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
           <span className={`badge ${isNSGreen || isEWGreen ? 'badge-green' : 'badge-yellow'}`} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
             Phase {finalPhase}: {isNSGreen ? 'North-South Green' : isEWGreen ? 'East-West Green' : 'Clearance Phase'}
           </span>
+
+          {isEmergency && (
+            <span className="badge badge-red" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+              <Siren className="w-4 h-4" /> EMERGENCY PRE-EMPTION
+            </span>
+          )}
         </div>
       </div>
-
-      {/* AMBULANCE CORRIDOR ALGORITHM LIVE HUD BANNER */}
-      {isEmergency && (
-        <div style={{ background: 'linear-gradient(90deg, rgba(239, 68, 68, 0.25) 0%, rgba(185, 28, 28, 0.15) 100%)', border: '1px solid rgba(239, 68, 68, 0.5)', padding: '0.6rem 1rem', borderRadius: '0.5rem', margin: '0.75rem 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', animation: 'pulse 1.5s infinite' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#fca5a5', fontWeight: 800, fontSize: '0.85rem' }}>
-            <Siren className="w-5 h-5 text-red-400" />
-            <span>EMERGENCY AMBULANCE ALGORITHM ACTIVE: 108 Ambulance 4.5x High-Speed Corridor Pass & Give-Way Lane Shift Enabled</span>
-          </div>
-          <div style={{ fontSize: '0.75rem', color: '#fecaca', fontWeight: 700 }}>
-            Left Corridor Lane Cleared | High-Speed Priority Pass | Response Time Saved: +38.9%
-          </div>
-        </div>
-      )}
 
       {/* Stats HUD Bar */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', margin: '1rem 0', background: 'rgba(15, 23, 42, 0.6)', padding: '0.75rem 1rem', borderRadius: '0.75rem', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
@@ -337,51 +178,14 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
               <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255, 255, 255, 0.03)" strokeWidth="1" />
             </pattern>
           </defs>
-          {/* Urban Landscape & Corner Parks (Filling canvas completely with rich urban environment) */}
-          <rect width="1000" height="500" fill="#0b1326" />
+          <rect width="1000" height="500" fill="#070a12" />
           <rect width="1000" height="500" fill="url(#gridPattern)" />
 
-          {/* Corner Urban Parks & Lawn Blocks */}
-          {/* North-West Park Block */}
-          <g>
-            <rect x="0" y="0" width="415" height="175" fill="#0c2419" rx="6" />
-            <rect x="10" y="10" width="395" height="155" fill="#083322" rx="6" stroke="rgba(34, 197, 94, 0.2)" strokeWidth="1" />
-            {/* Park Pathways & Trees */}
-            <circle cx="100" cy="80" r="18" fill="#15803d" opacity="0.6" />
-            <circle cx="280" cy="70" r="22" fill="#15803d" opacity="0.6" />
-            <path d="M 0 175 L 415 175" stroke="#334155" strokeWidth="4" />
-            <path d="M 415 0 L 415 175" stroke="#334155" strokeWidth="4" />
-          </g>
-
-          {/* North-East Park Block */}
-          <g>
-            <rect x="585" y="0" width="415" height="175" fill="#0c2419" rx="6" />
-            <rect x="595" y="10" width="395" height="155" fill="#083322" rx="6" stroke="rgba(34, 197, 94, 0.2)" strokeWidth="1" />
-            <circle cx="720" cy="80" r="20" fill="#15803d" opacity="0.6" />
-            <circle cx="900" cy="90" r="18" fill="#15803d" opacity="0.6" />
-            <path d="M 585 175 L 1000 175" stroke="#334155" strokeWidth="4" />
-            <path d="M 585 0 L 585 175" stroke="#334155" strokeWidth="4" />
-          </g>
-
-          {/* South-West Park Block */}
-          <g>
-            <rect x="0" y="325" width="415" height="175" fill="#0c2419" rx="6" />
-            <rect x="10" y="335" width="395" height="155" fill="#083322" rx="6" stroke="rgba(34, 197, 94, 0.2)" strokeWidth="1" />
-            <circle cx="120" cy="410" r="22" fill="#15803d" opacity="0.6" />
-            <circle cx="300" cy="420" r="19" fill="#15803d" opacity="0.6" />
-            <path d="M 0 325 L 415 325" stroke="#334155" strokeWidth="4" />
-            <path d="M 415 325 L 415 500" stroke="#334155" strokeWidth="4" />
-          </g>
-
-          {/* South-East Park Block */}
-          <g>
-            <rect x="585" y="325" width="415" height="175" fill="#0c2419" rx="6" />
-            <rect x="595" y="335" width="395" height="155" fill="#083322" rx="6" stroke="rgba(34, 197, 94, 0.2)" strokeWidth="1" />
-            <circle cx="700" cy="410" r="18" fill="#15803d" opacity="0.6" />
-            <circle cx="880" cy="400" r="22" fill="#15803d" opacity="0.6" />
-            <path d="M 585 325 L 1000 325" stroke="#334155" strokeWidth="4" />
-            <path d="M 585 325 L 585 500" stroke="#334155" strokeWidth="4" />
-          </g>
+          {/* Urban Corner Blocks */}
+          <rect x="0" y="0" width="420" height="180" fill="#0d1527" rx="8" />
+          <rect x="580" y="0" width="420" height="180" fill="#0d1527" rx="8" />
+          <rect x="0" y="320" width="420" height="180" fill="#0d1527" rx="8" />
+          <rect x="580" y="320" width="420" height="180" fill="#0d1527" rx="8" />
 
           {/* Asphalt Roads */}
           <rect x="420" y="0" width="160" height="500" fill="#1e293b" />
@@ -438,107 +242,160 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             <rect key={`e_cw_${i}`} x="583" y={185 + i * 14} width="14" height="8" fill="rgba(255, 255, 255, 0.7)" rx="1" />
           ))}
 
-          {/* Vehicle Traffic Light Posts & Glowing Indicators */}
-          {/* North Signal Light (governing North approach heading South) */}
-          <g>
-            <circle cx="395" cy="140" r="14" fill="#0f172a" stroke="#334155" strokeWidth="2" />
-            <circle cx="395" cy="140" r="9" fill={getSignalColor(true)}>
-              <animate attributeName="r" values="9;11;9" dur="1.2s" repeatCount="indefinite" />
-            </circle>
-            <text x="395" y="120" textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight="700">NORTH SIG</text>
+          {/* ========================================================================= */}
+          {/* 1. HIGH-VISIBILITY 3-LENS VEHICLE TRAFFIC SIGNALS (PLACED WIDE ON CORNERS) */}
+          {/* ========================================================================= */}
+
+          {/* NORTH APPROACH VEHICLE SIGNAL (Top-Left Sidewalk at X=330, Y=80) */}
+          <g transform="translate(330, 80)">
+            <rect x="-14" y="-34" width="28" height="68" rx="5" fill="#080e1a" stroke="#475569" strokeWidth="2" />
+            {/* Red Lens */}
+            <circle cx="0" cy="-21" r="6.5" fill={!isNSGreen && !isNSYellow ? "#ef4444" : "#290b0b"} />
+            {!isNSGreen && !isNSYellow && <circle cx="0" cy="-21" r="8.5" fill="none" stroke="#ef4444" strokeWidth="1.5" opacity="0.8" />}
+            {/* Yellow Lens */}
+            <circle cx="0" cy="0" r="6.5" fill={isNSYellow ? "#eab308" : "#2b2205"} />
+            {isNSYellow && <circle cx="0" cy="0" r="8.5" fill="none" stroke="#eab308" strokeWidth="1.5" opacity="0.8" />}
+            {/* Green Lens */}
+            <circle cx="0" cy="21" r="6.5" fill={isNSGreen ? "#22c55e" : "#052613"} />
+            {isNSGreen && <circle cx="0" cy="21" r="8.5" fill="none" stroke="#22c55e" strokeWidth="1.5" opacity="0.8"><animate attributeName="r" values="8.5;10.5;8.5" dur="1.2s" repeatCount="indefinite" /></circle>}
+            <text x="0" y="-40" textAnchor="middle" fill="#38bdf8" fontSize="8.5" fontWeight="800">NORTH SIG</text>
+            <text x="0" y="46" textAnchor="middle" fill={isNSGreen ? "#22c55e" : isNSYellow ? "#eab308" : "#ef4444"} fontSize="8" fontWeight="900">
+              {isNSGreen ? "GREEN" : isNSYellow ? "YELLOW" : "RED"}
+            </text>
           </g>
 
-          {/* South Signal Light (governing South approach heading North) */}
-          <g>
-            <circle cx="605" cy="360" r="14" fill="#0f172a" stroke="#334155" strokeWidth="2" />
-            <circle cx="605" cy="360" r="9" fill={getSignalColor(true)}>
-              <animate attributeName="r" values="9;11;9" dur="1.2s" repeatCount="indefinite" />
-            </circle>
-            <text x="605" y="385" textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight="700">SOUTH SIG</text>
+          {/* SOUTH APPROACH VEHICLE SIGNAL (Bottom-Right Sidewalk at X=670, Y=420) */}
+          <g transform="translate(670, 420)">
+            <rect x="-14" y="-34" width="28" height="68" rx="5" fill="#080e1a" stroke="#475569" strokeWidth="2" />
+            {/* Red Lens */}
+            <circle cx="0" cy="-21" r="6.5" fill={!isNSGreen && !isNSYellow ? "#ef4444" : "#290b0b"} />
+            {!isNSGreen && !isNSYellow && <circle cx="0" cy="-21" r="8.5" fill="none" stroke="#ef4444" strokeWidth="1.5" opacity="0.8" />}
+            {/* Yellow Lens */}
+            <circle cx="0" cy="0" r="6.5" fill={isNSYellow ? "#eab308" : "#2b2205"} />
+            {isNSYellow && <circle cx="0" cy="0" r="8.5" fill="none" stroke="#eab308" strokeWidth="1.5" opacity="0.8" />}
+            {/* Green Lens */}
+            <circle cx="0" cy="21" r="6.5" fill={isNSGreen ? "#22c55e" : "#052613"} />
+            {isNSGreen && <circle cx="0" cy="21" r="8.5" fill="none" stroke="#22c55e" strokeWidth="1.5" opacity="0.8"><animate attributeName="r" values="8.5;10.5;8.5" dur="1.2s" repeatCount="indefinite" /></circle>}
+            <text x="0" y="-40" textAnchor="middle" fill="#38bdf8" fontSize="8.5" fontWeight="800">SOUTH SIG</text>
+            <text x="0" y="46" textAnchor="middle" fill={isNSGreen ? "#22c55e" : isNSYellow ? "#eab308" : "#ef4444"} fontSize="8" fontWeight="900">
+              {isNSGreen ? "GREEN" : isNSYellow ? "YELLOW" : "RED"}
+            </text>
           </g>
 
-          {/* East Signal Light (governing East approach heading West) */}
-          <g>
-            <circle cx="620" cy="155" r="14" fill="#0f172a" stroke="#334155" strokeWidth="2" />
-            <circle cx="620" cy="155" r="9" fill={getSignalColor(false)}>
-              <animate attributeName="r" values="9;11;9" dur="1.2s" repeatCount="indefinite" />
-            </circle>
-            <text x="645" y="140" textAnchor="start" fill="#94a3b8" fontSize="10" fontWeight="700">EAST SIG</text>
+          {/* EAST APPROACH VEHICLE SIGNAL (Top-Right Sidewalk at X=670, Y=80) */}
+          <g transform="translate(670, 80)">
+            <rect x="-14" y="-34" width="28" height="68" rx="5" fill="#080e1a" stroke="#475569" strokeWidth="2" />
+            {/* Red Lens */}
+            <circle cx="0" cy="-21" r="6.5" fill={!isEWGreen && !isEWYellow ? "#ef4444" : "#290b0b"} />
+            {!isEWGreen && !isEWYellow && <circle cx="0" cy="-21" r="8.5" fill="none" stroke="#ef4444" strokeWidth="1.5" opacity="0.8" />}
+            {/* Yellow Lens */}
+            <circle cx="0" cy="0" r="6.5" fill={isEWYellow ? "#eab308" : "#2b2205"} />
+            {isEWYellow && <circle cx="0" cy="0" r="8.5" fill="none" stroke="#eab308" strokeWidth="1.5" opacity="0.8" />}
+            {/* Green Lens */}
+            <circle cx="0" cy="21" r="6.5" fill={isEWGreen ? "#22c55e" : "#052613"} />
+            {isEWGreen && <circle cx="0" cy="21" r="8.5" fill="none" stroke="#22c55e" strokeWidth="1.5" opacity="0.8"><animate attributeName="r" values="8.5;10.5;8.5" dur="1.2s" repeatCount="indefinite" /></circle>}
+            <text x="0" y="-40" textAnchor="middle" fill="#38bdf8" fontSize="8.5" fontWeight="800">EAST SIG</text>
+            <text x="0" y="46" textAnchor="middle" fill={isEWGreen ? "#22c55e" : isEWYellow ? "#eab308" : "#ef4444"} fontSize="8" fontWeight="900">
+              {isEWGreen ? "GREEN" : isEWYellow ? "YELLOW" : "RED"}
+            </text>
           </g>
 
-          {/* West Signal Light (governing West approach heading East) */}
-          <g>
-            <circle cx="380" cy="345" r="14" fill="#0f172a" stroke="#334155" strokeWidth="2" />
-            <circle cx="380" cy="345" r="9" fill={getSignalColor(false)}>
-              <animate attributeName="r" values="9;11;9" dur="1.2s" repeatCount="indefinite" />
-            </circle>
-            <text x="355" y="365" textAnchor="end" fill="#94a3b8" fontSize="10" fontWeight="700">WEST SIG</text>
+          {/* WEST APPROACH VEHICLE SIGNAL (Bottom-Left Sidewalk at X=330, Y=420) */}
+          <g transform="translate(330, 420)">
+            <rect x="-14" y="-34" width="28" height="68" rx="5" fill="#080e1a" stroke="#475569" strokeWidth="2" />
+            {/* Red Lens */}
+            <circle cx="0" cy="-21" r="6.5" fill={!isEWGreen && !isEWYellow ? "#ef4444" : "#290b0b"} />
+            {!isEWGreen && !isEWYellow && <circle cx="0" cy="-21" r="8.5" fill="none" stroke="#ef4444" strokeWidth="1.5" opacity="0.8" />}
+            {/* Yellow Lens */}
+            <circle cx="0" cy="0" r="6.5" fill={isEWYellow ? "#eab308" : "#2b2205"} />
+            {isEWYellow && <circle cx="0" cy="0" r="8.5" fill="none" stroke="#eab308" strokeWidth="1.5" opacity="0.8" />}
+            {/* Green Lens */}
+            <circle cx="0" cy="21" r="6.5" fill={isEWGreen ? "#22c55e" : "#052613"} />
+            {isEWGreen && <circle cx="0" cy="21" r="8.5" fill="none" stroke="#22c55e" strokeWidth="1.5" opacity="0.8"><animate attributeName="r" values="8.5;10.5;8.5" dur="1.2s" repeatCount="indefinite" /></circle>}
+            <text x="0" y="-40" textAnchor="middle" fill="#38bdf8" fontSize="8.5" fontWeight="800">WEST SIG</text>
+            <text x="0" y="46" textAnchor="middle" fill={isEWGreen ? "#22c55e" : isEWYellow ? "#eab308" : "#ef4444"} fontSize="8" fontWeight="900">
+              {isEWGreen ? "GREEN" : isEWYellow ? "YELLOW" : "RED"}
+            </text>
           </g>
 
           {/* ========================================================================= */}
-          {/* DEDICATED PEDESTRIAN WALK SIGNALS (WALK vs DON'T WALK LIGHTS) */}
+          {/* 2. DEDICATED PEDESTRIAN CROSSING HEADS (PLACED DIRECTLY ON ZEBRA CURBS)  */}
           {/* ========================================================================= */}
 
-          {/* North Crosswalk Pedestrian Signal */}
-          <g transform="translate(500, 145)">
-            <rect x="-24" y="-12" width="48" height="24" rx="4" fill="#0f172a" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
-            <circle cx="-10" cy="0" r="6" fill={!isNSGreen ? "#22c55e" : "#1e293b"}>
-              {!isNSGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
-            </circle>
-            <text x="6" y="4" textAnchor="middle" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="9" fontWeight="900">
-              {!isNSGreen ? "WALK" : "WAIT"}
+          {/* North Crosswalk Pedestrian Signals (At curbs X=412 and X=588, Y=145) */}
+          <g transform="translate(410, 145)">
+            <rect x="-16" y="-8" width="32" height="16" rx="3" fill="#080e1a" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <text x="0" y="3.5" textAnchor="middle" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="7.5" fontWeight="900">
+              {!isNSGreen ? "WALK" : "STOP"}
             </text>
           </g>
 
-          {/* South Crosswalk Pedestrian Signal */}
-          <g transform="translate(500, 355)">
-            <rect x="-24" y="-12" width="48" height="24" rx="4" fill="#0f172a" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
-            <circle cx="-10" cy="0" r="6" fill={!isNSGreen ? "#22c55e" : "#1e293b"}>
-              {!isNSGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
-            </circle>
-            <text x="6" y="4" textAnchor="middle" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="9" fontWeight="900">
-              {!isNSGreen ? "WALK" : "WAIT"}
+          <g transform="translate(590, 145)">
+            <rect x="-16" y="-8" width="32" height="16" rx="3" fill="#080e1a" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <text x="0" y="3.5" textAnchor="middle" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="7.5" fontWeight="900">
+              {!isNSGreen ? "WALK" : "STOP"}
             </text>
           </g>
 
-          {/* West Crosswalk Pedestrian Signal */}
-          <g transform="translate(380, 250)">
-            <rect x="-12" y="-24" width="24" height="48" rx="4" fill="#0f172a" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
-            <circle cx="0" cy="-10" r="6" fill={!isEWGreen ? "#22c55e" : "#1e293b"}>
-              {!isEWGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
-            </circle>
-            <text x="0" y="14" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">
-              {!isEWGreen ? "WALK" : "WAIT"}
+          {/* South Crosswalk Pedestrian Signals (At curbs X=410 and X=590, Y=355) */}
+          <g transform="translate(410, 355)">
+            <rect x="-16" y="-8" width="32" height="16" rx="3" fill="#080e1a" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <text x="0" y="3.5" textAnchor="middle" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="7.5" fontWeight="900">
+              {!isNSGreen ? "WALK" : "STOP"}
             </text>
           </g>
 
-          {/* East Crosswalk Pedestrian Signal */}
-          <g transform="translate(620, 250)">
-            <rect x="-12" y="-24" width="24" height="48" rx="4" fill="#0f172a" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
-            <circle cx="0" cy="-10" r="6" fill={!isEWGreen ? "#22c55e" : "#1e293b"}>
-              {!isEWGreen && <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />}
-            </circle>
-            <text x="0" y="14" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="8" fontWeight="900">
-              {!isEWGreen ? "WALK" : "WAIT"}
+          <g transform="translate(590, 355)">
+            <rect x="-16" y="-8" width="32" height="16" rx="3" fill="#080e1a" stroke={!isNSGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <text x="0" y="3.5" textAnchor="middle" fill={!isNSGreen ? "#22c55e" : "#ef4444"} fontSize="7.5" fontWeight="900">
+              {!isNSGreen ? "WALK" : "STOP"}
+            </text>
+          </g>
+
+          {/* West Crosswalk Pedestrian Signals (At curbs X=380, Y=175 and Y=325) */}
+          <g transform="translate(380, 175)">
+            <rect x="-16" y="-8" width="32" height="16" rx="3" fill="#080e1a" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <text x="0" y="3.5" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="7.5" fontWeight="900">
+              {!isEWGreen ? "WALK" : "STOP"}
+            </text>
+          </g>
+
+          <g transform="translate(380, 325)">
+            <rect x="-16" y="-8" width="32" height="16" rx="3" fill="#080e1a" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <text x="0" y="3.5" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="7.5" fontWeight="900">
+              {!isEWGreen ? "WALK" : "STOP"}
+            </text>
+          </g>
+
+          {/* East Crosswalk Pedestrian Signals (At curbs X=620, Y=175 and Y=325) */}
+          <g transform="translate(620, 175)">
+            <rect x="-16" y="-8" width="32" height="16" rx="3" fill="#080e1a" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <text x="0" y="3.5" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="7.5" fontWeight="900">
+              {!isEWGreen ? "WALK" : "STOP"}
+            </text>
+          </g>
+
+          <g transform="translate(620, 325)">
+            <rect x="-16" y="-8" width="32" height="16" rx="3" fill="#080e1a" stroke={!isEWGreen ? "#22c55e" : "#ef4444"} strokeWidth="1.5" />
+            <text x="0" y="3.5" textAnchor="middle" fill={!isEWGreen ? "#22c55e" : "#ef4444"} fontSize="7.5" fontWeight="900">
+              {!isEWGreen ? "WALK" : "STOP"}
             </text>
           </g>
 
 
           {/* ========================================================================= */}
-          {/* DYNAMICALLY ANIMATED DRIVING VEHICLES (ULTRA-SLOW PITCH PRESENTATION SPEED) */}
+          {/* DYNAMICALLY ANIMATED DRIVING VEHICLES (ADAPTIVE TRAFFIC SIGNAL RULES) */}
           {/* ========================================================================= */}
 
           {/* NORTH INBOUND VEHICLES (Heading South) */}
           {northVehicles.map((vtype, idx) => {
-            // ALGORITHM: Give-Way Lane Shifting & Fast Emergency Pass
-            const isAmbulance = vtype === 'emergency';
-            const laneX = isEmergency ? (isAmbulance ? 448 : 485) : (idx % 2 === 0 ? 460 : 485);
+            const laneX = idx % 2 === 0 ? 460 : 485;
             let vehY: number;
             if (isNSGreen) {
-              // Ambulance zooms FASTLY (4.5x speed) ONLY when triggered (siren ON), otherwise same speed as all other vehicles
-              const currentSpeed = (isAmbulance && isEmergency) ? flowSpeed * 4.5 : flowSpeed;
+              // GREEN SIGNAL: Drive smoothly at realistic speed South bound!
+              const flowSpeed = 9;
               const startOffset = -30 + idx * 45;
-              vehY = ((startOffset + simStep * currentSpeed) % 540) - 20;
+              vehY = ((startOffset + simStep * flowSpeed) % 540) - 20;
             } else {
               // RED SIGNAL: Queue up SAFELY behind Stopline Y=160
               vehY = 130 - Math.floor(idx / 2) * 55;
@@ -551,7 +408,8 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             const laneX = idx % 2 === 0 ? 515 : 540;
             let vehY: number;
             if (isNSGreen) {
-              // GREEN SIGNAL: Drive at calm, ultra-slow pitch speed North bound!
+              // GREEN SIGNAL: Drive smoothly at realistic speed North bound!
+              const flowSpeed = 9;
               const startOffset = -30 + idx * 45;
               vehY = 520 - ((startOffset + simStep * flowSpeed) % 540);
             } else {
@@ -566,7 +424,8 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             const laneY = idx % 2 === 0 ? 270 : 295;
             let vehX: number;
             if (isEWGreen) {
-              // GREEN SIGNAL: Drive at calm, ultra-slow pitch speed East bound!
+              // GREEN SIGNAL: Drive smoothly at realistic speed East bound!
+              const flowSpeed = 9;
               const startOffset = -30 + idx * 45;
               vehX = ((startOffset + simStep * flowSpeed) % 1040) - 20;
             } else {
@@ -581,7 +440,8 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             const laneY = idx % 2 === 0 ? 205 : 230;
             let vehX: number;
             if (isEWGreen) {
-              // GREEN SIGNAL: Drive at calm, ultra-slow pitch speed West bound!
+              // GREEN SIGNAL: Drive smoothly at realistic speed West bound!
+              const flowSpeed = 9;
               const startOffset = -30 + idx * 45;
               vehX = 1020 - ((startOffset + simStep * flowSpeed) % 1040);
             } else {
@@ -595,10 +455,10 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
           {/* ANIMATED PEDESTRIANS WALKING ON SAFE CROSSWALKS */}
           {/* ========================================================================= */}
 
-          {/* North Crosswalk Pedestrians (Walks at calm presentation pace when NS Signal is RED) */}
+          {/* North Crosswalk Pedestrians (Walks at natural realistic pace when NS Signal is RED) */}
           {[...Array(approaches.N?.pedestrians_waiting || 3)].map((_, i) => {
             const isSafeToWalk = !isNSGreen;
-            const pX = isSafeToWalk ? 430 + ((i * 35 + simStep * pedSpeed) % 130) : 425;
+            const pX = isSafeToWalk ? 430 + ((i * 35 + simStep * 4) % 130) : 425;
             return (
               <g key={`ped_n_${i}`} transform={`translate(${pX}, 170)`} style={{ transition: 'all 0.8s linear' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
@@ -607,10 +467,10 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             );
           })}
 
-          {/* South Crosswalk Pedestrians (Walks at calm presentation pace when NS Signal is RED) */}
+          {/* South Crosswalk Pedestrians (Walks at natural realistic pace when NS Signal is RED) */}
           {[...Array(approaches.S?.pedestrians_waiting || 3)].map((_, i) => {
             const isSafeToWalk = !isNSGreen;
-            const pX = isSafeToWalk ? 570 - ((i * 35 + simStep * pedSpeed) % 130) : 575;
+            const pX = isSafeToWalk ? 570 - ((i * 35 + simStep * 4) % 130) : 575;
             return (
               <g key={`ped_s_${i}`} transform={`translate(${pX}, 330)`} style={{ transition: 'all 0.8s linear' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
@@ -619,10 +479,10 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             );
           })}
 
-          {/* East Crosswalk Pedestrians (Walks at calm presentation pace when EW Signal is RED) */}
+          {/* East Crosswalk Pedestrians (Walks at natural realistic pace when EW Signal is RED) */}
           {[...Array(approaches.E?.pedestrians_waiting || 2)].map((_, i) => {
             const isSafeToWalk = !isEWGreen;
-            const pY = isSafeToWalk ? 190 + ((i * 35 + simStep * pedSpeed) % 120) : 185;
+            const pY = isSafeToWalk ? 190 + ((i * 35 + simStep * 4) % 120) : 185;
             return (
               <g key={`ped_e_${i}`} transform={`translate(590, ${pY})`} style={{ transition: 'all 0.8s linear' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
@@ -631,10 +491,10 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             );
           })}
 
-          {/* West Crosswalk Pedestrians (Walks at calm presentation pace when EW Signal is RED) */}
+          {/* West Crosswalk Pedestrians (Walks at natural realistic pace when EW Signal is RED) */}
           {[...Array(approaches.W?.pedestrians_waiting || 2)].map((_, i) => {
             const isSafeToWalk = !isEWGreen;
-            const pY = isSafeToWalk ? 310 - ((i * 35 + simStep * pedSpeed) % 120) : 315;
+            const pY = isSafeToWalk ? 310 - ((i * 35 + simStep * 4) % 120) : 315;
             return (
               <g key={`ped_w_${i}`} transform={`translate(410, ${pY})`} style={{ transition: 'all 0.8s linear' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />

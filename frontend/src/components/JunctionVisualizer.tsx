@@ -25,7 +25,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
   emergencyActive = false,
   onToggleEmergency
 }) => {
-  const [speedMultiplier, setSpeedMultiplier] = useState<number>(1); // Standard default speed
+  const [speedMultiplier, setSpeedMultiplier] = useState<number>(0.5); // Calm presentation speed default
   const [localEmergency, setLocalEmergency] = useState<boolean>(false);
   const [animFrame, setAnimFrame] = useState<number>(0);
 
@@ -45,7 +45,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
   const breakItActive = stateData?.safety_shield?.break_it_active || false;
   const fallbackActive = stateData?.safety_shield?.fallback_active || breakItActive;
   const rawStep = stateData?.step || 0;
-  const simStep = rawStep + animFrame * 0.04;
+  const simStep = rawStep + animFrame * 0.012;
 
   const handleTriggerAmbulanceClick = () => {
     if (onToggleEmergency) {
@@ -55,9 +55,9 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
     }
   };
 
-  // Speed formulas (smooth, natural pacing for 0.5x, 1x, 2x speeds)
-  const flowSpeed = 1.8 * speedMultiplier;
-  const pedSpeed = 0.7 * speedMultiplier;
+  // Speed formulas (calm, slow, readable presentation speed for 0.5x, 1x, 2x speeds)
+  const flowSpeed = 0.6 * speedMultiplier;
+  const pedSpeed = 0.3 * speedMultiplier;
 
   // Signal phase status: 0/1 = NS Green/Yellow, 2/3 = EW Green/Yellow (Force NS Green on Emergency)
   const isNSGreen = isEmergency || finalPhase === 0;

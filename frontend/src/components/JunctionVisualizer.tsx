@@ -301,10 +301,10 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
         <div style={{ background: 'linear-gradient(90deg, rgba(239, 68, 68, 0.25) 0%, rgba(185, 28, 28, 0.15) 100%)', border: '1px solid rgba(239, 68, 68, 0.5)', padding: '0.6rem 1rem', borderRadius: '0.5rem', margin: '0.75rem 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', animation: 'pulse 1.5s infinite' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#fca5a5', fontWeight: 800, fontSize: '0.85rem' }}>
             <Siren className="w-5 h-5 text-red-400" />
-            <span>EMERGENCY AMBULANCE ALGORITHM ACTIVE: 108 Ambulance Fast-Pass Corridor & Give-Way Lane Shift Enabled</span>
+            <span>EMERGENCY AMBULANCE ALGORITHM ACTIVE: 108 Ambulance 4.5x High-Speed Corridor Pass & Give-Way Lane Shift Enabled</span>
           </div>
           <div style={{ fontSize: '0.75rem', color: '#fecaca', fontWeight: 700 }}>
-            Left Corridor Lane Cleared | Vehicles Shifted Right | Response Time Saved: +38.9%
+            Left Corridor Lane Cleared | High-Speed Priority Pass | Response Time Saved: +38.9%
           </div>
         </div>
       )}
@@ -535,8 +535,8 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({
             const laneX = isEmergency ? (isAmbulance ? 448 : 485) : (idx % 2 === 0 ? 460 : 485);
             let vehY: number;
             if (isNSGreen) {
-              // Ambulance drives FASTLY (2.2x speed) ONLY when triggered (siren ON), otherwise same speed as all other vehicles
-              const currentSpeed = (isAmbulance && isEmergency) ? flowSpeed * 2.2 : flowSpeed;
+              // Ambulance zooms FASTLY (4.5x speed) ONLY when triggered (siren ON), otherwise same speed as all other vehicles
+              const currentSpeed = (isAmbulance && isEmergency) ? flowSpeed * 4.5 : flowSpeed;
               const startOffset = -30 + idx * 45;
               vehY = ((startOffset + simStep * currentSpeed) % 540) - 20;
             } else {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Siren, Shield, Activity } from 'lucide-react';
 
 interface ApproachData {
@@ -32,48 +32,263 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
   const isEWGreen = finalPhase === 2;
   const isEWYellow = finalPhase === 3;
 
-
   const ambulance = stateData?.ambulance || {};
   const isAmbActive = ambulance.active || isEmergency;
   const ambApproach = ambulance.approach_edge ? ambulance.approach_edge.charAt(0).toUpperCase() : 'N';
   const ambSiren = ambulance.siren_active ?? isEmergency;
 
-  // Helper to get vehicle list for an approach
-  const getVehiclesForApproach = (appKey: string) => {
-    const app = approaches[appKey];
-    const count = app?.vehicle_count ?? (appKey === 'N' ? 5 : appKey === 'S' ? 6 : appKey === 'E' ? 7 : 8);
-    const vcounts = app?.vtype_counts || {};
+  // Continuous vehicle position tracking to eliminate glitches, backwards flying, and speed spikes
+  const vehPosRef = useRef<Record<string, { pos: number; isSmooth: boolean }>>({});
+  const lastStepRef = useRef<number>(-1);
+  const pedPosRef = useRef<Record<string, { pos: number; isSmooth: boolean }>>({});
+  const lastPedStepRef = useRef<number>(-1);
 
-    const list: string[] = [];
-    if (vcounts.car) for (let i = 0; i < vcounts.car; i++) list.push('car');
-    if (vcounts.motorcycle) for (let i = 0; i < vcounts.motorcycle; i++) list.push('motorcycle');
-    if (vcounts.bus) for (let i = 0; i < vcounts.bus; i++) list.push('bus');
-    if (vcounts.truck) for (let i = 0; i < vcounts.truck; i++) list.push('truck');
-    if (vcounts.auto) for (let i = 0; i < vcounts.auto; i++) list.push('auto');
-
-    const defaults = ['car', 'motorcycle', 'car', 'auto', 'bus', 'truck', 'motorcycle'];
-    while (list.length < count) {
-      list.push(defaults[list.length % defaults.length]);
-    }
-
-    if (isAmbActive && appKey === ambApproach) {
-      const typeToInsert = ambSiren ? 'emergency' : 'ambulance_normal';
-      if (!list.includes(typeToInsert)) {
-        list.unshift(typeToInsert);
-      }
-    }
-
-    return list.slice(0, 8);
+  // Stable vehicle templates per approach so vehicles don't morph/glitch on vehicle count updates
+  const STABLE_APPROACH_TEMPLATES: Record<string, string[]> = {
+    N: ['car', 'motorcycle', 'auto', 'car', 'bus', 'motorcycle', 'car', 'truck'],
+    S: ['car', 'auto', 'motorcycle', 'car', 'truck', 'car', 'bus', 'motorcycle'],
+    E: ['bus', 'car', 'truck', 'auto', 'car', 'motorcycle', 'car', 'bus'],
+    W: ['truck', 'car', 'motorcycle', 'auto', 'bus', 'car', 'motorcycle', 'car']
   };
 
-  // SVG Vehicle Top-View Renderer
-  const renderVehicleSVG = (type: string, x: number, y: number, rotation: number, key: string) => {
+  const getVehiclesForApproach = (appKey: string) => {
+    const app = approaches[appKey];
+    const count = Math.min(8, Math.max(3, app?.vehicle_count ?? (appKey === 'N' ? 5 : appKey === 'S' ? 6 : appKey === 'E' ? 7 : 8)));
+    const template = [...(STABLE_APPROACH_TEMPLATES[appKey] || STABLE_APPROACH_TEMPLATES.N)];
+
+    if (isAmbActive && appKey === ambApproach) {
+      template[0] = ambSiren ? 'emergency' : 'ambulance_normal';
+    }
+
+    return template.slice(0, count);
+  };
+
+  const northVehicles = getVehiclesForApproach('N');
+  const southVehicles = getVehiclesForApproach('S');
+  const eastVehicles = getVehiclesForApproach('E');
+  const westVehicles = getVehiclesForApproach('W');
+
+  // Update continuous vehicle positions whenever simulation step advances
+  if (simStep !== lastStepRef.current) {
+    lastStepRef.current = simStep;
+    const moveStep = 20; // Realistic calibrated movement (20 px/sec)
+
+    // 1. NORTH APPROACH (Heading South, Y increases from -30 to 530)
+    northVehicles.forEach((_, idx) => {
+      const key = `n_${idx}`;
+      const queueStopY = 135 - Math.floor(idx / 2) * 50;
+      const prev = vehPosRef.current[key];
+      let currentPos = prev ? prev.pos : (isNSGreen ? (idx * 55) : queueStopY);
+      let smooth = true;
+
+      if (isNSGreen) {
+        currentPos += moveStep;
+        if (currentPos > 530) {
+          currentPos = -40;
+          smooth = false; // Instant off-screen wrap without backwards animation
+        }
+      } else {
+        if (currentPos < queueStopY) {
+          currentPos = Math.min(queueStopY, currentPos + moveStep);
+        } else if (currentPos > 155) {
+          // Already past stopline: safely clear the junction
+          currentPos += moveStep;
+          if (currentPos > 530) {
+            currentPos = -40;
+            smooth = false;
+          }
+        } else {
+          currentPos = queueStopY;
+        }
+      }
+      vehPosRef.current[key] = { pos: currentPos, isSmooth: smooth };
+    });
+
+    // 2. SOUTH APPROACH (Heading North, Y decreases from 530 to -30)
+    southVehicles.forEach((_, idx) => {
+      const key = `s_${idx}`;
+      const queueStopY = 365 + Math.floor(idx / 2) * 50;
+      const prev = vehPosRef.current[key];
+      let currentPos = prev ? prev.pos : (isNSGreen ? (500 - idx * 55) : queueStopY);
+      let smooth = true;
+
+      if (isNSGreen) {
+        currentPos -= moveStep;
+        if (currentPos < -40) {
+          currentPos = 540;
+          smooth = false;
+        }
+      } else {
+        if (currentPos > queueStopY) {
+          currentPos = Math.max(queueStopY, currentPos - moveStep);
+        } else if (currentPos < 345) {
+          currentPos -= moveStep;
+          if (currentPos < -40) {
+            currentPos = 540;
+            smooth = false;
+          }
+        } else {
+          currentPos = queueStopY;
+        }
+      }
+      vehPosRef.current[key] = { pos: currentPos, isSmooth: smooth };
+    });
+
+    // 3. WEST APPROACH (Heading East, X increases from -30 to 1030)
+    westVehicles.forEach((_, idx) => {
+      const key = `w_${idx}`;
+      const queueStopX = 375 - Math.floor(idx / 2) * 50;
+      const prev = vehPosRef.current[key];
+      let currentPos = prev ? prev.pos : (isEWGreen ? (idx * 65) : queueStopX);
+      let smooth = true;
+
+      if (isEWGreen) {
+        currentPos += moveStep;
+        if (currentPos > 1030) {
+          currentPos = -40;
+          smooth = false;
+        }
+      } else {
+        if (currentPos < queueStopX) {
+          currentPos = Math.min(queueStopX, currentPos + moveStep);
+        } else if (currentPos > 395) {
+          currentPos += moveStep;
+          if (currentPos > 1030) {
+            currentPos = -40;
+            smooth = false;
+          }
+        } else {
+          currentPos = queueStopX;
+        }
+      }
+      vehPosRef.current[key] = { pos: currentPos, isSmooth: smooth };
+    });
+
+    // 4. EAST APPROACH (Heading West, X decreases from 1030 to -30)
+    eastVehicles.forEach((_, idx) => {
+      const key = `e_${idx}`;
+      const queueStopX = 625 + Math.floor(idx / 2) * 50;
+      const prev = vehPosRef.current[key];
+      let currentPos = prev ? prev.pos : (isEWGreen ? (1000 - idx * 65) : queueStopX);
+      let smooth = true;
+
+      if (isEWGreen) {
+        currentPos -= moveStep;
+        if (currentPos < -40) {
+          currentPos = 1040;
+          smooth = false;
+        }
+      } else {
+        if (currentPos > queueStopX) {
+          currentPos = Math.max(queueStopX, currentPos - moveStep);
+        } else if (currentPos < 605) {
+          currentPos -= moveStep;
+          if (currentPos < -40) {
+            currentPos = 1040;
+            smooth = false;
+          }
+        } else {
+          currentPos = queueStopX;
+        }
+      }
+      vehPosRef.current[key] = { pos: currentPos, isSmooth: smooth };
+    });
+  }
+
+  // Update pedestrian walking positions
+  if (simStep !== lastPedStepRef.current) {
+    lastPedStepRef.current = simStep;
+    const pedStep = 5; // Realistic crosswalk pace
+
+    // North Crosswalk Pedestrians (X goes 430 to 570)
+    for (let i = 0; i < 8; i++) {
+      const key = `ped_n_${i}`;
+      const prev = pedPosRef.current[key];
+      let pos = prev ? prev.pos : 430 + (i * 20);
+      let smooth = true;
+      if (!isNSGreen) {
+        pos += pedStep;
+        if (pos > 570) {
+          pos = 430;
+          smooth = false;
+        }
+      } else {
+        pos = 425;
+        smooth = false;
+      }
+      pedPosRef.current[key] = { pos, isSmooth: smooth };
+    }
+
+    // South Crosswalk Pedestrians (X goes 570 to 430)
+    for (let i = 0; i < 8; i++) {
+      const key = `ped_s_${i}`;
+      const prev = pedPosRef.current[key];
+      let pos = prev ? prev.pos : 570 - (i * 20);
+      let smooth = true;
+      if (!isNSGreen) {
+        pos -= pedStep;
+        if (pos < 430) {
+          pos = 570;
+          smooth = false;
+        }
+      } else {
+        pos = 575;
+        smooth = false;
+      }
+      pedPosRef.current[key] = { pos, isSmooth: smooth };
+    }
+
+    // East Crosswalk Pedestrians (Y goes 190 to 310)
+    for (let i = 0; i < 8; i++) {
+      const key = `ped_e_${i}`;
+      const prev = pedPosRef.current[key];
+      let pos = prev ? prev.pos : 190 + (i * 20);
+      let smooth = true;
+      if (!isEWGreen) {
+        pos += pedStep;
+        if (pos > 310) {
+          pos = 190;
+          smooth = false;
+        }
+      } else {
+        pos = 185;
+        smooth = false;
+      }
+      pedPosRef.current[key] = { pos, isSmooth: smooth };
+    }
+
+    // West Crosswalk Pedestrians (Y goes 310 to 190)
+    for (let i = 0; i < 8; i++) {
+      const key = `ped_w_${i}`;
+      const prev = pedPosRef.current[key];
+      let pos = prev ? prev.pos : 310 - (i * 20);
+      let smooth = true;
+      if (!isEWGreen) {
+        pos -= pedStep;
+        if (pos < 190) {
+          pos = 310;
+          smooth = false;
+        }
+      } else {
+        pos = 315;
+        smooth = false;
+      }
+      pedPosRef.current[key] = { pos, isSmooth: smooth };
+    }
+  }
+
+  // SVG Vehicle Top-View Renderer with smooth hardware-accelerated transform
+  const renderVehicleSVG = (type: string, x: number, y: number, rotation: number, key: string, isSmooth: boolean = true) => {
     const transform = `translate(${x}, ${y}) rotate(${rotation})`;
+    const style: React.CSSProperties = {
+      transition: isSmooth ? 'transform 0.95s linear' : 'none',
+      willChange: 'transform'
+    };
 
     switch (type) {
       case 'emergency':
         return (
-          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
+          <g transform={transform} key={key} style={style}>
             {/* 1. Large Pulsing Dual-Color Radiant Siren Halo (Blue on Left, Red on Right) */}
             <circle cx="-8" cy="-2" r="24" fill="#00e5ff" opacity="0.45">
               <animate attributeName="opacity" values="0.75;0.05;0.75" dur="0.3s" repeatCount="indefinite" />
@@ -133,7 +348,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
         );
       case 'ambulance_normal':
         return (
-          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
+          <g transform={transform} key={key} style={style}>
             <rect x="-13" y="-23" width="26" height="46" rx="4" fill="#f8fafc" stroke="#94a3b8" strokeWidth="2" />
             <rect x="-3" y="-8" width="6" height="16" fill="#ef4444" />
             <rect x="-8" y="-3" width="16" height="6" fill="#ef4444" />
@@ -143,7 +358,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
         );
       case 'bus':
         return (
-          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
+          <g transform={transform} key={key} style={style}>
             <rect x="-13" y="-28" width="26" height="56" rx="3" fill="#991b1b" stroke="#f87171" strokeWidth="1.5" />
             <rect x="-10" y="-24" width="20" height="8" fill="#1e293b" rx="1" />
             <rect x="-10" y="-12" width="20" height="32" fill="#7f1d1d" rx="1" />
@@ -151,28 +366,28 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
         );
       case 'truck':
         return (
-          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
+          <g transform={transform} key={key} style={style}>
             <rect x="-13" y="-26" width="26" height="52" rx="2" fill="#166534" stroke="#4ade80" strokeWidth="1.5" />
             <rect x="-11" y="-24" width="22" height="14" fill="#047857" rx="2" />
           </g>
         );
       case 'motorcycle':
         return (
-          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
+          <g transform={transform} key={key} style={style}>
             <rect x="-4" y="-10" width="8" height="20" rx="2" fill="#854d0e" stroke="#fde047" strokeWidth="1" />
             <circle cx="0" cy="0" r="4" fill="#facc15" />
           </g>
         );
       case 'auto':
         return (
-          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
+          <g transform={transform} key={key} style={style}>
             <polygon points="0,-12 10,8 -10,8" fill="#c2410c" stroke="#fb923c" strokeWidth="1.5" />
             <rect x="-9" y="0" width="18" height="10" fill="#ea580c" rx="1" />
           </g>
         );
       default: // car
         return (
-          <g transform={transform} key={key} style={{ transition: 'all 0.8s ease-in-out' }}>
+          <g transform={transform} key={key} style={style}>
             <rect x="-11" y="-18" width="22" height="36" rx="5" fill="#0284c7" stroke="#38bdf8" strokeWidth="1.5" />
             <rect x="-8" y="-14" width="16" height="6" fill="#0f172a" rx="1" />
             <rect x="-8" y="8" width="16" height="4" fill="#0f172a" rx="1" />
@@ -182,11 +397,6 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
         );
     }
   };
-
-  const northVehicles = getVehiclesForApproach('N');
-  const southVehicles = getVehiclesForApproach('S');
-  const eastVehicles = getVehiclesForApproach('E');
-  const westVehicles = getVehiclesForApproach('W');
 
   return (
     <div className="panel" style={{ width: '100%', marginBottom: '1.5rem' }}>
@@ -455,113 +665,85 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           {/* NORTH INBOUND VEHICLES (Heading South) */}
           {northVehicles.map((vtype, idx) => {
             const laneX = idx % 2 === 0 ? 460 : 485;
-            let vehY: number;
-            if (isNSGreen) {
-              // GREEN SIGNAL: Drive smoothly at realistic speed South bound!
-              const flowSpeed = 9;
-              const startOffset = -30 + idx * 45;
-              vehY = ((startOffset + simStep * flowSpeed) % 540) - 20;
-            } else {
-              // RED SIGNAL: Queue up SAFELY behind Stopline Y=160
-              vehY = 130 - Math.floor(idx / 2) * 55;
-            }
-            return renderVehicleSVG(vtype, laneX, vehY, 180, `n_v_${idx}`);
+            const key = `n_${idx}`;
+            const tracked = vehPosRef.current[key] || { pos: 135 - Math.floor(idx / 2) * 50, isSmooth: false };
+            return renderVehicleSVG(vtype, laneX, tracked.pos, 180, `${key}_${vtype}`, tracked.isSmooth);
           })}
 
           {/* SOUTH INBOUND VEHICLES (Heading North) */}
           {southVehicles.map((vtype, idx) => {
             const laneX = idx % 2 === 0 ? 515 : 540;
-            let vehY: number;
-            if (isNSGreen) {
-              // GREEN SIGNAL: Drive smoothly at realistic speed North bound!
-              const flowSpeed = 9;
-              const startOffset = -30 + idx * 45;
-              vehY = 520 - ((startOffset + simStep * flowSpeed) % 540);
-            } else {
-              // RED SIGNAL: Queue up SAFELY behind Stopline Y=340
-              vehY = 370 + Math.floor(idx / 2) * 55;
-            }
-            return renderVehicleSVG(vtype, laneX, vehY, 0, `s_v_${idx}`);
+            const key = `s_${idx}`;
+            const tracked = vehPosRef.current[key] || { pos: 365 + Math.floor(idx / 2) * 50, isSmooth: false };
+            return renderVehicleSVG(vtype, laneX, tracked.pos, 0, `${key}_${vtype}`, tracked.isSmooth);
           })}
 
           {/* WEST INBOUND VEHICLES (Heading East) */}
           {westVehicles.map((vtype, idx) => {
             const laneY = idx % 2 === 0 ? 270 : 295;
-            let vehX: number;
-            if (isEWGreen) {
-              // GREEN SIGNAL: Drive smoothly at realistic speed East bound!
-              const flowSpeed = 9;
-              const startOffset = -30 + idx * 45;
-              vehX = ((startOffset + simStep * flowSpeed) % 1040) - 20;
-            } else {
-              // RED SIGNAL: Queue up SAFELY behind Stopline X=400
-              vehX = 370 - Math.floor(idx / 2) * 55;
-            }
-            return renderVehicleSVG(vtype, vehX, laneY, 90, `w_v_${idx}`);
+            const key = `w_${idx}`;
+            const tracked = vehPosRef.current[key] || { pos: 375 - Math.floor(idx / 2) * 50, isSmooth: false };
+            return renderVehicleSVG(vtype, tracked.pos, laneY, 90, `${key}_${vtype}`, tracked.isSmooth);
           })}
 
           {/* EAST INBOUND VEHICLES (Heading West) */}
           {eastVehicles.map((vtype, idx) => {
             const laneY = idx % 2 === 0 ? 205 : 230;
-            let vehX: number;
-            if (isEWGreen) {
-              // GREEN SIGNAL: Drive smoothly at realistic speed West bound!
-              const flowSpeed = 9;
-              const startOffset = -30 + idx * 45;
-              vehX = 1020 - ((startOffset + simStep * flowSpeed) % 1040);
-            } else {
-              // RED SIGNAL: Queue up SAFELY behind Stopline X=600
-              vehX = 630 + Math.floor(idx / 2) * 55;
-            }
-            return renderVehicleSVG(vtype, vehX, laneY, 270, `e_v_${idx}`);
+            const key = `e_${idx}`;
+            const tracked = vehPosRef.current[key] || { pos: 625 + Math.floor(idx / 2) * 50, isSmooth: false };
+            return renderVehicleSVG(vtype, tracked.pos, laneY, 270, `${key}_${vtype}`, tracked.isSmooth);
           })}
 
           {/* ========================================================================= */}
           {/* ANIMATED PEDESTRIANS WALKING ON SAFE CROSSWALKS */}
           {/* ========================================================================= */}
 
-          {/* North Crosswalk Pedestrians (Walks at natural realistic pace when NS Signal is RED) */}
+          {/* North Crosswalk Pedestrians */}
           {[...Array(approaches.N?.pedestrians_waiting || 3)].map((_, i) => {
             const isSafeToWalk = !isNSGreen;
-            const pX = isSafeToWalk ? 430 + ((i * 35 + simStep * 4) % 130) : 425;
+            const key = `ped_n_${i}`;
+            const tracked = pedPosRef.current[key] || { pos: isSafeToWalk ? 430 : 425, isSmooth: false };
             return (
-              <g key={`ped_n_${i}`} transform={`translate(${pX}, 170)`} style={{ transition: 'all 0.8s linear' }}>
+              <g key={key} transform={`translate(${tracked.pos}, 170)`} style={{ transition: tracked.isSmooth ? 'transform 0.95s linear' : 'none', willChange: 'transform' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
                 <circle cx="0" cy="-6" r="3" fill="#fbbf24" />
               </g>
             );
           })}
 
-          {/* South Crosswalk Pedestrians (Walks at natural realistic pace when NS Signal is RED) */}
+          {/* South Crosswalk Pedestrians */}
           {[...Array(approaches.S?.pedestrians_waiting || 3)].map((_, i) => {
             const isSafeToWalk = !isNSGreen;
-            const pX = isSafeToWalk ? 570 - ((i * 35 + simStep * 4) % 130) : 575;
+            const key = `ped_s_${i}`;
+            const tracked = pedPosRef.current[key] || { pos: isSafeToWalk ? 570 : 575, isSmooth: false };
             return (
-              <g key={`ped_s_${i}`} transform={`translate(${pX}, 330)`} style={{ transition: 'all 0.8s linear' }}>
+              <g key={key} transform={`translate(${tracked.pos}, 330)`} style={{ transition: tracked.isSmooth ? 'transform 0.95s linear' : 'none', willChange: 'transform' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
                 <circle cx="0" cy="-6" r="3" fill="#fbbf24" />
               </g>
             );
           })}
 
-          {/* East Crosswalk Pedestrians (Walks at natural realistic pace when EW Signal is RED) */}
+          {/* East Crosswalk Pedestrians */}
           {[...Array(approaches.E?.pedestrians_waiting || 2)].map((_, i) => {
             const isSafeToWalk = !isEWGreen;
-            const pY = isSafeToWalk ? 190 + ((i * 35 + simStep * 4) % 120) : 185;
+            const key = `ped_e_${i}`;
+            const tracked = pedPosRef.current[key] || { pos: isSafeToWalk ? 190 : 185, isSmooth: false };
             return (
-              <g key={`ped_e_${i}`} transform={`translate(590, ${pY})`} style={{ transition: 'all 0.8s linear' }}>
+              <g key={key} transform={`translate(590, ${tracked.pos})`} style={{ transition: tracked.isSmooth ? 'transform 0.95s linear' : 'none', willChange: 'transform' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
                 <circle cx="0" cy="-6" r="3" fill="#fbbf24" />
               </g>
             );
           })}
 
-          {/* West Crosswalk Pedestrians (Walks at natural realistic pace when EW Signal is RED) */}
+          {/* West Crosswalk Pedestrians */}
           {[...Array(approaches.W?.pedestrians_waiting || 2)].map((_, i) => {
             const isSafeToWalk = !isEWGreen;
-            const pY = isSafeToWalk ? 310 - ((i * 35 + simStep * 4) % 120) : 315;
+            const key = `ped_w_${i}`;
+            const tracked = pedPosRef.current[key] || { pos: isSafeToWalk ? 310 : 315, isSmooth: false };
             return (
-              <g key={`ped_w_${i}`} transform={`translate(410, ${pY})`} style={{ transition: 'all 0.8s linear' }}>
+              <g key={key} transform={`translate(410, ${tracked.pos})`} style={{ transition: tracked.isSmooth ? 'transform 0.95s linear' : 'none', willChange: 'transform' }}>
                 <circle cx="0" cy="0" r="5" fill={isSafeToWalk ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1" />
                 <circle cx="0" cy="-6" r="3" fill="#fbbf24" />
               </g>

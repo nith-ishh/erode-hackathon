@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Siren, Shield, Activity } from 'lucide-react';
+import { Siren, Shield, Activity, ShieldAlert, Ban } from 'lucide-react';
 
 interface ApproachData {
   edge_id: string;
@@ -36,6 +36,17 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
   const isAmbActive = ambulance.active || isEmergency;
   const ambApproach = ambulance.approach_edge ? ambulance.approach_edge.charAt(0).toUpperCase() : 'N';
   const ambSiren = ambulance.siren_active ?? isEmergency;
+
+  // Bridge structural capacity & early warning telemetry
+  const bridge = stateData?.bridge_monitor;
+  const isBridgeAlert = bridge?.alert_active || false;
+  const isBridgeCritical = bridge?.alert_level === 'CRITICAL_OVERLOAD';
+  const bridgeLoadPct = bridge?.load_percentage ?? 46;
+
+  // Smart No-Parking & illegal obstruction telemetry
+  const noParking = stateData?.no_parking;
+  const hasParkingViolation = (noParking?.active_violations_count ?? 0) > 0;
+  const activeViolation = noParking?.active_violations?.[0];
 
   // Continuous vehicle position tracking to eliminate glitches, backwards flying, and speed spikes
   const vehPosRef = useRef<Record<string, { pos: number; isSmooth: boolean }>>({});
@@ -435,6 +446,18 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
               <Siren className="w-4 h-4" /> EMERGENCY PRE-EMPTION
             </span>
           )}
+
+          {isBridgeAlert && (
+            <span className={`badge ${isBridgeCritical ? 'badge-red' : 'badge-yellow'}`} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+              <ShieldAlert className="w-4 h-4" /> BRIDGE CAPACITY {isBridgeCritical ? 'CRITICAL' : 'WARNING'} ({bridgeLoadPct}%)
+            </span>
+          )}
+
+          {hasParkingViolation && (
+            <span className="badge badge-red" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+              <Ban className="w-4 h-4" /> NO-PARKING OBSTRUCTION ({activeViolation?.vehicle_plate || 'TN-33-AX-8912'})
+            </span>
+          )}
         </div>
       </div>
 
@@ -487,6 +510,48 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           <line x1="501" y1="0" x2="501" y2="160" stroke="#eab308" strokeWidth="2" />
           <line x1="460" y1="0" x2="460" y2="160" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" strokeDasharray="10 10" />
           <line x1="540" y1="0" x2="540" y2="160" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" strokeDasharray="10 10" />
+
+          {/* ========================================================================= */}
+          {/* CAUVERY RIVER BRIDGE CORRIDOR STRUCTURAL OVERLAY (NORTH APPROACH) */}
+          {/* ========================================================================= */}
+          {/* Bridge Steel Girder Railings */}
+          <line x1="417" y1="0" x2="417" y2="155" stroke={isBridgeCritical ? "#ef4444" : isBridgeAlert ? "#f59e0b" : "#475569"} strokeWidth="5" strokeDasharray="12 4" />
+          <line x1="583" y1="0" x2="583" y2="155" stroke={isBridgeCritical ? "#ef4444" : isBridgeAlert ? "#f59e0b" : "#475569"} strokeWidth="5" strokeDasharray="12 4" />
+          {/* Bridge Structural Status Floating Badge */}
+          <g transform="translate(500, 36)">
+            <rect x="-140" y="-13" width="280" height="26" rx="5" fill="#090d16" stroke={isBridgeCritical ? "#ef4444" : isBridgeAlert ? "#f59e0b" : "rgba(56, 189, 248, 0.4)"} strokeWidth="1.5" />
+            <text x="0" y="4" textAnchor="middle" fill={isBridgeCritical ? "#f87171" : isBridgeAlert ? "#fbbf24" : "#38bdf8"} fontSize="8.5" fontWeight="900" letterSpacing="0.5">
+              {isBridgeCritical ? `⚠️ CAUVERY BRIDGE CRITICAL: ${bridgeLoadPct}% (POLICE WARNED)` : isBridgeAlert ? `CAUVERY BRIDGE: ${bridgeLoadPct}% LOAD WARNING` : `CAUVERY RIVER BRIDGE: ${bridgeLoadPct}% SAFE LOAD`}
+            </text>
+          </g>
+
+          {/* ========================================================================= */}
+          {/* MARKED NO-PARKING CLEARWAY ZONE & VIOLATION OBSTRUCTION (WEST ROAD) */}
+          {/* ========================================================================= */}
+          {/* Curb Red/Yellow Hatched No-Parking Zone */}
+          <rect x="80" y="316" width="240" height="4" fill="#dc2626" />
+          <line x1="80" y1="318" x2="320" y2="318" stroke="#fbbf24" strokeWidth="2" strokeDasharray="6 6" />
+          <text x="200" y="331" textAnchor="middle" fill="#ef4444" fontSize="7.5" fontWeight="800" letterSpacing="0.5">
+            🚫 NO PARKING CLEARWAY (SEC 122 M.V. ACT)
+          </text>
+
+          {/* If an illegal parking violation is active, render the parked vehicle blocking the lane */}
+          {hasParkingViolation && (
+            <g transform="translate(200, 305)">
+              {/* Parked Vehicle */}
+              <rect x="-11" y="-18" width="22" height="36" rx="5" fill="#7f1d1d" stroke="#ef4444" strokeWidth="2" transform="rotate(90)" />
+              {/* Hazard Strobe Halo */}
+              <circle cx="0" cy="0" r="24" fill="none" stroke="#ef4444" strokeWidth="1.5" opacity="0.8">
+                <animate attributeName="r" values="18;28;18" dur="0.8s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.8;0.1;0.8" dur="0.8s" repeatCount="indefinite" />
+              </circle>
+              {/* e-Challan Citation Badge */}
+              <rect x="-70" y="-36" width="140" height="18" rx="4" fill="#0f172a" stroke="#ef4444" strokeWidth="1.5" />
+              <text x="0" y="-24" textAnchor="middle" fill="#fca5a5" fontSize="7.5" fontWeight="900">
+                CHALLAN: {activeViolation?.vehicle_plate || 'TN-33-AX-8912'} (BILLED ₹1500)
+              </text>
+            </g>
+          )}
 
           {/* South Road Lines */}
           <line x1="499" y1="340" x2="499" y2="500" stroke="#eab308" strokeWidth="2" />

@@ -129,3 +129,66 @@ def get_ambulance_status():
     """Returns live telemetry, ETA, route progress, and siren state machine status."""
     status = sim_service.get_ambulance_status()
     return status
+
+# =========================================================================
+# BRIDGE STRUCTURAL CAPACITY & POLICE EARLY WARNING ENDPOINTS
+# =========================================================================
+
+@router.get("/bridge/status")
+def get_bridge_status():
+    """Returns real-time bridge PCU structural load and police alert status."""
+    return sim_service.get_bridge_status()
+
+@router.post("/bridge/surge")
+def trigger_bridge_surge(
+    amount: float = Query(22.0, description="Amount of PCU vehicular live-load to inject on the bridge")
+):
+    """Simulate heavy bridge overload surge to test automated police warning dispatch."""
+    res = sim_service.trigger_bridge_surge(amount=amount)
+    return res
+
+@router.post("/bridge/clear")
+def clear_bridge_load():
+    """Clears bridge traffic congestion and resets structural load to safe levels."""
+    res = sim_service.clear_bridge()
+    return res
+
+# =========================================================================
+# SMART NO-PARKING e-CHALLAN & REVENUE BILLING ENDPOINTS
+# =========================================================================
+
+@router.get("/parking/status")
+def get_parking_enforcement_status():
+    """Returns active no-parking violations, e-challans issued, and revenue collected."""
+    return sim_service.get_parking_status()
+
+@router.post("/parking/trigger")
+def trigger_parking_violation(
+    vehicle_plate: Optional[str] = Query(None, description="Vehicle registration plate (e.g., TN-33-AX-8912)"),
+    vehicle_type: str = Query("car", description="Vehicle type: car, auto, motorcycle, bus, truck"),
+    zone_id: str = Query("NP_BROUGH_RD", description="Zone ID: NP_BROUGH_RD, NP_MANIKOONDU, NP_CAUVERY_ENTRY")
+):
+    """Detects unauthorized parking in No-Parking zone, issues automated e-Challan and bills offender."""
+    res = sim_service.trigger_parking_violation(
+        vehicle_plate=vehicle_plate,
+        vehicle_type=vehicle_type,
+        zone_id=zone_id
+    )
+    return res
+
+@router.post("/parking/clear")
+def clear_parking_violation(
+    challan_id: str = Query(..., description="Challan ID of the vehicle obstruction to clear")
+):
+    """Dispatches traffic towing unit to remove vehicle and restore traffic flow."""
+    res = sim_service.clear_parking_violation(challan_id=challan_id)
+    return res
+
+@router.post("/parking/pay")
+def pay_parking_challan(
+    challan_id: str = Query(..., description="Challan ID to pay online")
+):
+    """Marks e-Challan fine as paid and credits revenue."""
+    res = sim_service.pay_challan(challan_id=challan_id)
+    return res
+

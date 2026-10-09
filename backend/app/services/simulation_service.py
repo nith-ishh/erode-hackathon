@@ -26,6 +26,8 @@ from decision.explain_engine import ExplainEngine
 from emergency.emergency_detector import EmergencyDetector
 from emergency.green_wave import GreenWaveCoordinator
 from emergency.ambulance_manager import AmbulanceManager
+from simulation.bridge_monitor import BridgeOverloadMonitor
+from simulation.no_parking_enforcer import NoParkingEnforcer
 from counterfactual.comparison import CounterfactualTwinRunner
 from backend.app.database.db import TrafficDatabase
 from scripts.generate_demand import generate_route_file
@@ -57,6 +59,8 @@ class SimulationService:
         self.emergency_detector = EmergencyDetector()
         self.green_wave = GreenWaveCoordinator()
         self.ambulance_mgr = AmbulanceManager()
+        self.bridge_monitor = BridgeOverloadMonitor()
+        self.parking_enforcer = NoParkingEnforcer()
         self.counterfactual_runner = CounterfactualTwinRunner()
         self.db = TrafficDatabase()
 
@@ -255,7 +259,16 @@ class SimulationService:
             raw_state["emergency_present"] = False
             raw_state["emergency_details"] = []
 
-        # 2. Emergency Detection & Green Wave Coordination
+        # 2. Bridge Structural Capacity & Smart No-Parking Enforcement Updates
+        bridge_status = self.bridge_monitor.update(self.step_count, approaches)
+        parking_status = self.parking_enforcer.update(self.step_count, approaches)
+        
+        # If bridge is in critical overload, inject structural warning into state
+        if bridge_status.get("alert_active", False):
+            raw_state["bridge_warning"] = True
+            raw_state["bridge_alert_level"] = bridge_status.get("alert_level")
+
+        # 3. Emergency Detection & Green Wave Coordination
         em_info = self.emergency_detector.detect_emergency(raw_state)
         green_wave_plan = self.green_wave.compute_green_wave_phases(em_info, self.step_count)
 
@@ -448,8 +461,53 @@ class SimulationService:
             },
             "live_decision_log": self.live_decision_log,
             "adaptivity_proof": self.adaptivity_proof,
-            "time_series_history": self.time_series_history
+            "time_series_history": self.time_series_history,
+            # Bridge Structural Capacity & Early Warning Telemetry
+            "bridge_monitor": bridge_status,
+            # Smart No-Parking e-Challan & Billing Enforcement
+            "no_parking": parking_status
         }
+
+    def trigger_bridge_surge(self, amount: float = 22.0) -> Dict[str, Any]:
+        """Manually inject surge on bridge to test structural warning & police alerts."""
+        return self.bridge_monitor.trigger_surge(amount=amount)
+
+    def clear_bridge(self) -> Dict[str, Any]:
+        """Clear bridge load back to safe free-flow levels."""
+        return self.bridge_monitor.clear_bridge()
+
+    def get_bridge_status(self) -> Dict[str, Any]:
+        """Return live bridge structural capacity and police alert payload."""
+        return self.bridge_monitor.get_status()
+
+    def trigger_parking_violation(
+        self,
+        vehicle_plate: Optional[str] = None,
+        vehicle_type: str = "car",
+        zone_id: str = "NP_BROUGH_RD",
+        owner_name: Optional[str] = None,
+        owner_phone: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Inject illegal parking violation to issue e-Challan and bill offender."""
+        return self.parking_enforcer.trigger_illegal_parking(
+            vehicle_plate=vehicle_plate,
+            vehicle_type=vehicle_type,
+            zone_id=zone_id,
+            owner_name=owner_name,
+            owner_phone=owner_phone
+        )
+
+    def clear_parking_violation(self, challan_id: str) -> Dict[str, Any]:
+        """Clear parking obstruction (towing unit dispatched)."""
+        return self.parking_enforcer.clear_violation(challan_id=challan_id)
+
+    def pay_challan(self, challan_id: str) -> Dict[str, Any]:
+        """Pay fine for an issued e-Challan."""
+        return self.parking_enforcer.pay_challan(challan_id=challan_id)
+
+    def get_parking_status(self) -> Dict[str, Any]:
+        """Return live parking enforcement ledger, violations, and revenue."""
+        return self.parking_enforcer.get_status()
 
     def run_counterfactual_comparison(self, scenario: str = "rush_hour", steps: int = 600, seed: int = 12345) -> Dict[str, Any]:
         """Runs side-by-side comparison experiment on identical seed & traffic."""

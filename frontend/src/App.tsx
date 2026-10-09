@@ -8,6 +8,8 @@ import { SafetyShieldPanel } from './components/SafetyShieldPanel';
 import { LiveDecisionLog } from './components/LiveDecisionLog';
 import { LiveTimeSeriesCharts } from './components/LiveTimeSeriesCharts';
 import { GreenWavePanel } from './components/GreenWavePanel';
+import { BridgeCapacityAlertPanel } from './components/BridgeCapacityAlertPanel';
+import { NoParkingChallanPanel } from './components/NoParkingChallanPanel';
 import { ImpactDashboard } from './components/ImpactDashboard';
 import { DecisionAuditLog } from './components/DecisionAuditLog';
 import { Radio } from 'lucide-react';
@@ -175,6 +177,12 @@ export const App: React.FC = () => {
         emergencyActive={emergencyActive}
         onToggleEmergency={handleToggleEmergency}
       />
+
+      {/* 2.1 BRIDGE OVERLOAD EARLY WARNING & POLICE ALERT SYSTEM */}
+      <BridgeCapacityAlertPanel bridgeData={stateData?.bridge_monitor} />
+
+      {/* 2.2 SMART NO-PARKING e-CHALLAN & REVENUE BILLING ENFORCEMENT */}
+      <NoParkingChallanPanel parkingData={stateData?.no_parking} />
 
       {/* 3. CORE REQUIREMENT: ADAPTIVE AI vs FIXED-TIME SIDE-BY-SIDE PANEL */}
       <AdaptiveVsFixedPanel stateData={stateData} />

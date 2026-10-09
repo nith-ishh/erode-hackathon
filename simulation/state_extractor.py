@@ -114,6 +114,7 @@ class StateExtractor:
 
     def extract_mock_state(self, step: int = 0) -> Dict[str, Any]:
         """Generates realistic state data for testing or mock fallback mode."""
+        import math
         import random
         random.seed(step)
         
@@ -130,15 +131,29 @@ class StateExtractor:
             "emergency_details": []
         }
 
+        # Smooth temporal traffic flow so telemetry evolves continuously without erratic jumps
+        app_offsets = {"N": 0.0, "S": 1.5, "E": 3.0, "W": 4.5}
+        cur_phase = state["current_phase"]
+        
         for app in self.approaches:
-            veh_count = random.randint(3, 15)
-            queue_count = random.randint(1, veh_count)
+            offset = app_offsets.get(app, 0.0)
+            base_veh = 7.0 + 3.0 * math.sin(step / 20.0 + offset)
+            noise = (random.random() - 0.5) * 1.0
+            veh_count = int(max(3, min(14, round(base_veh + noise))))
+            
+            # Realistic queue buildup during Red and discharge during Green
+            is_green = (cur_phase == 0 and app in ["N", "S"]) or (cur_phase == 2 and app in ["E", "W"])
+            if is_green:
+                queue_count = max(1, int(veh_count * 0.3))
+            else:
+                queue_count = max(2, int(veh_count * 0.7))
+            
             vtype_counts = {"car": int(veh_count*0.4), "motorcycle": int(veh_count*0.4), "bus": int(veh_count*0.1), "auto": int(veh_count*0.1)}
             
             pcu_count = self.pcu_calc.calculate_pcu_count(vtype_counts)
             pcu_queue = pcu_count * (queue_count / max(1, veh_count))
-            pcu_delay = pcu_queue * random.uniform(5.0, 20.0)
-            peds = random.randint(0, 5)
+            pcu_delay = pcu_queue * random.uniform(5.0, 15.0)
+            peds = max(1, min(4, int(2.0 + 1.2 * math.cos(step / 15.0 + offset))))
 
             state["approaches"][app] = {
                 "edge_id": f"{app}2J1",

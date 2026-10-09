@@ -52,15 +52,14 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
   };
 
   const getVehiclesForApproach = (appKey: string) => {
-    const app = approaches[appKey];
-    const count = Math.min(8, Math.max(3, app?.vehicle_count ?? (appKey === 'N' ? 5 : appKey === 'S' ? 6 : appKey === 'E' ? 7 : 8)));
     const template = [...(STABLE_APPROACH_TEMPLATES[appKey] || STABLE_APPROACH_TEMPLATES.N)];
 
     if (isAmbActive && appKey === ambApproach) {
       template[0] = ambSiren ? 'emergency' : 'ambulance_normal';
     }
 
-    return template.slice(0, count);
+    // Maintain stable fleet of 6 vehicles (3 per lane) so no vehicle ever vanishes
+    return template.slice(0, 6);
   };
 
   const northVehicles = getVehiclesForApproach('N');
@@ -73,7 +72,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
     lastStepRef.current = simStep;
     const moveStep = 20; // Realistic calibrated movement (20 px/sec)
 
-    // 1. NORTH APPROACH (Heading South, Y increases from -30 to 530)
+    // 1. NORTH APPROACH (Heading South, Y increases from -40 to 530)
     northVehicles.forEach((_, idx) => {
       const key = `n_${idx}`;
       const queueStopY = 135 - Math.floor(idx / 2) * 50;
@@ -85,18 +84,22 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
         currentPos += moveStep;
         if (currentPos > 530) {
           currentPos = -40;
-          smooth = false; // Instant off-screen wrap without backwards animation
+          smooth = false; // Wrap off-screen without backwards animation
         }
       } else {
-        if (currentPos < queueStopY) {
-          currentPos = Math.min(queueStopY, currentPos + moveStep);
-        } else if (currentPos > 155) {
+        if (currentPos > 155) {
           // Already past stopline: safely clear the junction
           currentPos += moveStep;
           if (currentPos > 530) {
             currentPos = -40;
             smooth = false;
           }
+        } else if (currentPos === -40) {
+          // Stay waiting off-screen until light turns green (no queue collision)
+          currentPos = -40;
+          smooth = false;
+        } else if (currentPos < queueStopY) {
+          currentPos = Math.min(queueStopY, currentPos + moveStep);
         } else {
           currentPos = queueStopY;
         }
@@ -104,7 +107,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
       vehPosRef.current[key] = { pos: currentPos, isSmooth: smooth };
     });
 
-    // 2. SOUTH APPROACH (Heading North, Y decreases from 530 to -30)
+    // 2. SOUTH APPROACH (Heading North, Y decreases from 540 to -40)
     southVehicles.forEach((_, idx) => {
       const key = `s_${idx}`;
       const queueStopY = 365 + Math.floor(idx / 2) * 50;
@@ -119,14 +122,18 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           smooth = false;
         }
       } else {
-        if (currentPos > queueStopY) {
-          currentPos = Math.max(queueStopY, currentPos - moveStep);
-        } else if (currentPos < 345) {
+        if (currentPos < 345) {
           currentPos -= moveStep;
           if (currentPos < -40) {
             currentPos = 540;
             smooth = false;
           }
+        } else if (currentPos === 540) {
+          // Stay waiting off-screen until light turns green
+          currentPos = 540;
+          smooth = false;
+        } else if (currentPos > queueStopY) {
+          currentPos = Math.max(queueStopY, currentPos - moveStep);
         } else {
           currentPos = queueStopY;
         }
@@ -134,7 +141,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
       vehPosRef.current[key] = { pos: currentPos, isSmooth: smooth };
     });
 
-    // 3. WEST APPROACH (Heading East, X increases from -30 to 1030)
+    // 3. WEST APPROACH (Heading East, X increases from -40 to 1040)
     westVehicles.forEach((_, idx) => {
       const key = `w_${idx}`;
       const queueStopX = 375 - Math.floor(idx / 2) * 50;
@@ -149,14 +156,17 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           smooth = false;
         }
       } else {
-        if (currentPos < queueStopX) {
-          currentPos = Math.min(queueStopX, currentPos + moveStep);
-        } else if (currentPos > 395) {
+        if (currentPos > 395) {
           currentPos += moveStep;
           if (currentPos > 1030) {
             currentPos = -40;
             smooth = false;
           }
+        } else if (currentPos === -40) {
+          currentPos = -40;
+          smooth = false;
+        } else if (currentPos < queueStopX) {
+          currentPos = Math.min(queueStopX, currentPos + moveStep);
         } else {
           currentPos = queueStopX;
         }
@@ -164,7 +174,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
       vehPosRef.current[key] = { pos: currentPos, isSmooth: smooth };
     });
 
-    // 4. EAST APPROACH (Heading West, X decreases from 1030 to -30)
+    // 4. EAST APPROACH (Heading West, X decreases from 1040 to -40)
     eastVehicles.forEach((_, idx) => {
       const key = `e_${idx}`;
       const queueStopX = 625 + Math.floor(idx / 2) * 50;
@@ -179,14 +189,17 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           smooth = false;
         }
       } else {
-        if (currentPos > queueStopX) {
-          currentPos = Math.max(queueStopX, currentPos - moveStep);
-        } else if (currentPos < 605) {
+        if (currentPos < 605) {
           currentPos -= moveStep;
           if (currentPos < -40) {
             currentPos = 1040;
             smooth = false;
           }
+        } else if (currentPos === 1040) {
+          currentPos = 1040;
+          smooth = false;
+        } else if (currentPos > queueStopX) {
+          currentPos = Math.max(queueStopX, currentPos - moveStep);
         } else {
           currentPos = queueStopX;
         }
@@ -667,7 +680,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             const laneX = idx % 2 === 0 ? 460 : 485;
             const key = `n_${idx}`;
             const tracked = vehPosRef.current[key] || { pos: 135 - Math.floor(idx / 2) * 50, isSmooth: false };
-            return renderVehicleSVG(vtype, laneX, tracked.pos, 180, `${key}_${vtype}`, tracked.isSmooth);
+            return renderVehicleSVG(vtype, laneX, tracked.pos, 180, key, tracked.isSmooth);
           })}
 
           {/* SOUTH INBOUND VEHICLES (Heading North) */}
@@ -675,7 +688,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             const laneX = idx % 2 === 0 ? 515 : 540;
             const key = `s_${idx}`;
             const tracked = vehPosRef.current[key] || { pos: 365 + Math.floor(idx / 2) * 50, isSmooth: false };
-            return renderVehicleSVG(vtype, laneX, tracked.pos, 0, `${key}_${vtype}`, tracked.isSmooth);
+            return renderVehicleSVG(vtype, laneX, tracked.pos, 0, key, tracked.isSmooth);
           })}
 
           {/* WEST INBOUND VEHICLES (Heading East) */}
@@ -683,7 +696,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             const laneY = idx % 2 === 0 ? 270 : 295;
             const key = `w_${idx}`;
             const tracked = vehPosRef.current[key] || { pos: 375 - Math.floor(idx / 2) * 50, isSmooth: false };
-            return renderVehicleSVG(vtype, tracked.pos, laneY, 90, `${key}_${vtype}`, tracked.isSmooth);
+            return renderVehicleSVG(vtype, tracked.pos, laneY, 90, key, tracked.isSmooth);
           })}
 
           {/* EAST INBOUND VEHICLES (Heading West) */}
@@ -691,7 +704,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
             const laneY = idx % 2 === 0 ? 205 : 230;
             const key = `e_${idx}`;
             const tracked = vehPosRef.current[key] || { pos: 625 + Math.floor(idx / 2) * 50, isSmooth: false };
-            return renderVehicleSVG(vtype, tracked.pos, laneY, 270, `${key}_${vtype}`, tracked.isSmooth);
+            return renderVehicleSVG(vtype, tracked.pos, laneY, 270, key, tracked.isSmooth);
           })}
 
           {/* ========================================================================= */}
@@ -699,7 +712,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           {/* ========================================================================= */}
 
           {/* North Crosswalk Pedestrians */}
-          {[...Array(approaches.N?.pedestrians_waiting || 3)].map((_, i) => {
+          {[0, 1, 2].map((i) => {
             const isSafeToWalk = !isNSGreen;
             const key = `ped_n_${i}`;
             const tracked = pedPosRef.current[key] || { pos: isSafeToWalk ? 430 : 425, isSmooth: false };
@@ -712,7 +725,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           })}
 
           {/* South Crosswalk Pedestrians */}
-          {[...Array(approaches.S?.pedestrians_waiting || 3)].map((_, i) => {
+          {[0, 1, 2].map((i) => {
             const isSafeToWalk = !isNSGreen;
             const key = `ped_s_${i}`;
             const tracked = pedPosRef.current[key] || { pos: isSafeToWalk ? 570 : 575, isSmooth: false };
@@ -725,7 +738,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           })}
 
           {/* East Crosswalk Pedestrians */}
-          {[...Array(approaches.E?.pedestrians_waiting || 2)].map((_, i) => {
+          {[0, 1, 2].map((i) => {
             const isSafeToWalk = !isEWGreen;
             const key = `ped_e_${i}`;
             const tracked = pedPosRef.current[key] || { pos: isSafeToWalk ? 190 : 185, isSmooth: false };
@@ -738,7 +751,7 @@ export const JunctionVisualizer: React.FC<JunctionVisualizerProps> = ({ stateDat
           })}
 
           {/* West Crosswalk Pedestrians */}
-          {[...Array(approaches.W?.pedestrians_waiting || 2)].map((_, i) => {
+          {[0, 1, 2].map((i) => {
             const isSafeToWalk = !isEWGreen;
             const key = `ped_w_${i}`;
             const tracked = pedPosRef.current[key] || { pos: isSafeToWalk ? 310 : 315, isSmooth: false };

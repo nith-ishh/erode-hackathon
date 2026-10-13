@@ -112,21 +112,31 @@ class StateExtractor:
         state["total_pcu_delay"] = round(state["total_pcu_delay"], 2)
         return state
 
-    def extract_mock_state(self, step: int = 0) -> Dict[str, Any]:
-        """Generates realistic state data for testing or mock fallback mode."""
+    def extract_mock_state(self, step: int = 0, scenario: str = "normal") -> Dict[str, Any]:
+        """Generates realistic state data for testing or mock fallback mode dynamically adjusted by scenario."""
         import random
         random.seed(step)
         
+        # Scenario density multipliers
+        scenario_configs = {
+            "normal": {"min_v": 3, "max_v": 10, "delay_mult": 1.0, "queue_factor": 0.4},
+            "rush_hour": {"min_v": 12, "max_v": 22, "delay_mult": 2.2, "queue_factor": 0.75},
+            "high_density": {"min_v": 18, "max_v": 32, "delay_mult": 3.5, "queue_factor": 0.88},
+            "incident": {"min_v": 15, "max_v": 28, "delay_mult": 4.8, "queue_factor": 0.95},
+        }
+        config = scenario_configs.get(scenario, scenario_configs["normal"])
+
         state = {
             "timestamp": float(step),
             "junction_id": "J1",
             "current_phase": (step // 30) % 4,
+            "scenario": scenario,
             "approaches": {},
             "total_pcu_queue": 0.0,
             "total_pcu_delay": 0.0,
             "total_vehicles": 0,
             "total_pedestrians_waiting": 0,
-            "emergency_present": (step > 120 and step < 180),
+            "emergency_present": (scenario == "incident") or (step > 120 and step < 180),
             "emergency_details": []
         }
 
@@ -139,14 +149,25 @@ class StateExtractor:
             })
 
         for app in self.approaches:
-            veh_count = random.randint(3, 15)
-            queue_count = random.randint(1, veh_count)
-            vtype_counts = {"car": int(veh_count*0.4), "motorcycle": int(veh_count*0.4), "bus": int(veh_count*0.1), "auto": int(veh_count*0.1)}
+            # Add specific heavy directional congestion for rush hour & incident
+            if scenario == "rush_hour" and app in ["N", "S"]:
+                veh_count = random.randint(config["min_v"] + 5, config["max_v"] + 6)
+            elif scenario == "incident" and app in ["E", "W"]:
+                veh_count = random.randint(config["min_v"] + 6, config["max_v"] + 8)
+            else:
+                veh_count = random.randint(config["min_v"], config["max_v"])
+
+            queue_count = min(veh_count, max(1, int(veh_count * config["queue_factor"] * random.uniform(0.85, 1.15))))
+            
+            if scenario == "high_density":
+                vtype_counts = {"car": int(veh_count*0.3), "motorcycle": int(veh_count*0.2), "bus": int(veh_count*0.3), "auto": int(veh_count*0.2)}
+            else:
+                vtype_counts = {"car": int(veh_count*0.5), "motorcycle": int(veh_count*0.3), "bus": int(veh_count*0.1), "auto": int(veh_count*0.1)}
             
             pcu_count = self.pcu_calc.calculate_pcu_count(vtype_counts)
             pcu_queue = pcu_count * (queue_count / max(1, veh_count))
-            pcu_delay = pcu_queue * random.uniform(5.0, 20.0)
-            peds = random.randint(0, 5)
+            pcu_delay = pcu_queue * random.uniform(5.0, 15.0) * config["delay_mult"]
+            peds = random.randint(1, 8 if scenario in ["rush_hour", "high_density"] else 4)
 
             state["approaches"][app] = {
                 "edge_id": f"{app}2J1",

@@ -13,7 +13,7 @@ export const SafetyShieldPanel: React.FC<SafetyShieldPanelProps> = ({ stateData,
   const metrics = shieldData.metrics || {};
   const ruleChecks = metrics.rule_checks || {};
 
-  // All 11 Deterministic Safety Guardrails (Member 2 Responsibility)
+  // All 11 Deterministic Safety Guardrails (Member 2 Governance)
   const all11Rules = [
     { id: "RULE_1_MIN_GREEN", name: "Rule 1: Min Green (10s)", pass: metrics.min_green_pass !== false },
     { id: "RULE_2_MAX_GREEN", name: "Rule 2: Max Green (60s)", pass: metrics.max_green_pass !== false },
@@ -29,13 +29,13 @@ export const SafetyShieldPanel: React.FC<SafetyShieldPanelProps> = ({ stateData,
   ];
 
   return (
-    <div className="panel" style={{ border: fallbackActive ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(34, 197, 94, 0.3)' }}>
+    <div className="panel" style={{ border: fallbackActive ? '1px solid rgba(239, 68, 68, 0.45)' : '1px solid rgba(34, 197, 94, 0.35)' }}>
       <div className="panel-header">
         <div className="panel-title">
           {isApproved ? (
-            <ShieldCheck style={{ color: 'var(--accent-green)' }} />
+            <ShieldCheck className="w-5 h-5" style={{ color: 'var(--accent-green-bright)' }} />
           ) : (
-            <ShieldAlert style={{ color: 'var(--accent-red)' }} />
+            <ShieldAlert className="w-5 h-5" style={{ color: 'var(--accent-red)' }} />
           )}
           <span>Deterministic Safety Shield (11 Guardrails)</span>
         </div>
@@ -46,41 +46,41 @@ export const SafetyShieldPanel: React.FC<SafetyShieldPanelProps> = ({ stateData,
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
         {/* Main Status Banner */}
         <div
           style={{
-            background: fallbackActive ? 'rgba(239, 68, 68, 0.12)' : 'rgba(34, 197, 94, 0.1)',
-            border: `1px solid ${fallbackActive ? 'rgba(239, 68, 68, 0.4)' : 'rgba(34, 197, 94, 0.3)'}`,
-            borderRadius: '0.75rem',
-            padding: '0.85rem',
+            background: fallbackActive ? '#fff1f2' : '#f0fdf4',
+            border: `1px solid ${fallbackActive ? '#fecdd3' : '#bbf7d0'}`,
+            borderRadius: '0.85rem',
+            padding: '0.95rem',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.75rem'
+            gap: '0.85rem'
           }}
         >
           {fallbackActive ? (
-            <AlertCircle style={{ color: '#ef4444', flexShrink: 0, width: 28, height: 28 }} />
+            <AlertCircle style={{ color: '#dc2626', flexShrink: 0, width: 28, height: 28 }} />
           ) : (
-            <ShieldCheck style={{ color: '#22c55e', flexShrink: 0, width: 28, height: 28 }} />
+            <ShieldCheck style={{ color: '#16a34a', flexShrink: 0, width: 28, height: 28 }} />
           )}
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 800, color: fallbackActive ? '#f87171' : '#4ade80', fontSize: '0.92rem' }}>
+            <div style={{ fontWeight: 800, color: fallbackActive ? '#be123c' : '#15803d', fontSize: '0.94rem' }}>
               {fallbackActive ? 'PPO CONTROL BLOCKED — Fixed-Time Fallback Active' : 'Safety Shield Status: APPROVED (Zero Collision Risk)'}
             </div>
-            <div style={{ fontSize: '0.8rem', color: '#cbd5e1', marginTop: '0.2rem', lineHeight: '1.4' }}>
+            <div style={{ fontSize: '0.8rem', color: '#334155', marginTop: '0.2rem', lineHeight: '1.45', fontWeight: 600 }}>
               {shieldData.reason || 'All 11 hardware and timing safety rules satisfied.'}
             </div>
           </div>
         </div>
 
         {/* 11 Rule Verification Checklist */}
-        <div style={{ background: 'rgba(255, 255, 255, 0.02)', borderRadius: '0.5rem', padding: '0.75rem', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-              11 Deterministic Guardrail Status
+        <div style={{ background: '#f8fafc', borderRadius: '0.85rem', padding: '0.85rem', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              11 Deterministic Guardrail Verification
             </span>
-            <span style={{ fontSize: '0.7rem', color: '#38bdf8', fontWeight: 600 }}>
+            <span style={{ fontSize: '0.72rem', color: '#0284c7', fontWeight: 800 }}>
               Member 2 Governance
             </span>
           </div>
@@ -89,13 +89,13 @@ export const SafetyShieldPanel: React.FC<SafetyShieldPanelProps> = ({ stateData,
             {all11Rules.map((r) => {
               const passed = ruleChecks[r.id] ? ruleChecks[r.id] === 'PASS' : r.pass;
               return (
-                <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.76rem', background: 'rgba(0,0,0,0.2)', padding: '0.35rem 0.5rem', borderRadius: '0.35rem' }}>
+                <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.76rem', background: passed ? '#ffffff' : '#fff1f2', padding: '0.45rem 0.65rem', borderRadius: '0.4rem', border: passed ? '1px solid #cbd5e1' : '1px solid #fecdd3', transition: 'all 0.2s ease' }}>
                   {passed ? (
-                    <CheckCircle className="w-3.5 h-3.5" style={{ color: '#22c55e', flexShrink: 0 }} />
+                    <CheckCircle className="w-3.5 h-3.5" style={{ color: '#16a34a', flexShrink: 0 }} />
                   ) : (
-                    <XCircle className="w-3.5 h-3.5" style={{ color: '#ef4444', flexShrink: 0 }} />
+                    <XCircle className="w-3.5 h-3.5" style={{ color: '#dc2626', flexShrink: 0 }} />
                   )}
-                  <span style={{ color: passed ? '#e2e8f0' : '#f87171', fontWeight: passed ? 500 : 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <span style={{ color: passed ? '#1e293b' : '#9f1239', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {r.name}
                   </span>
                 </div>

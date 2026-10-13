@@ -77,7 +77,7 @@ export const ImpactDashboard: React.FC<ImpactDashboardProps> = ({ metricsData })
   // Idling fuel: ~0.8 L/hr idling; CO2: 2.31 kg CO2/L fuel
   const fuelSavedLiters = Math.round(totalDelayHoursSaved * 0.8 * 10) / 10;
   const co2SavedKg = Math.round(fuelSavedLiters * 2.31 * 10) / 10;
-  const economicSaved = Math.round(totalDelayHoursSaved * 12.5); // Average Indian time value estimate
+  const economicSaved = Math.round(totalDelayHoursSaved * 12.5);
 
   const chartData = [
     { name: 'Avg Delay (s)', AI: ai.avg_delay_s, Baseline: base.avg_delay_s },
@@ -87,30 +87,35 @@ export const ImpactDashboard: React.FC<ImpactDashboardProps> = ({ metricsData })
   ];
 
   return (
-    <div className="panel" style={{ border: '1px solid rgba(56, 189, 248, 0.25)' }}>
+    <div className="panel" style={{ border: '1px solid rgba(56, 189, 248, 0.3)' }}>
       {/* Header Bar */}
       <div className="panel-header" style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
         <div className="panel-title">
-          <BarChart2 style={{ color: 'var(--accent-cyan)' }} />
+          <BarChart2 className="w-5 h-5" style={{ color: 'var(--accent-cyan)' }} />
           <span>Live Counterfactual Twin & Empirical Impact Dashboard</span>
         </div>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
             Updated: {lastUpdated}
           </span>
           <button
             onClick={handleRunExperiment}
             disabled={isRunningExp}
-            className="btn-primary"
             style={{
-              padding: '0.4rem 0.85rem',
+              padding: '0.45rem 0.95rem',
               fontSize: '0.8rem',
+              fontWeight: 800,
+              borderRadius: '0.6rem',
+              border: '1px solid rgba(56, 189, 248, 0.4)',
               display: 'flex',
               alignItems: 'center',
               gap: '0.4rem',
-              background: 'linear-gradient(135deg, #0284c7, #0369a1)',
-              cursor: isRunningExp ? 'not-allowed' : 'pointer'
+              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+              color: 'white',
+              boxShadow: '0 0 16px rgba(56, 189, 248, 0.25)',
+              cursor: isRunningExp ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s ease'
             }}
           >
             {isRunningExp ? (
@@ -129,8 +134,8 @@ export const ImpactDashboard: React.FC<ImpactDashboardProps> = ({ metricsData })
       </div>
 
       {/* 4 Headline Empirical Metrics Cards */}
-      <div className="grid-4" style={{ marginBottom: '1rem' }}>
-        <div className="metric-card" style={{ background: 'rgba(34, 197, 94, 0.06)', border: '1px solid rgba(34, 197, 94, 0.25)' }}>
+      <div className="grid-4" style={{ marginBottom: '1.1rem' }}>
+        <div className="metric-card" style={{ background: 'rgba(34, 197, 94, 0.08)', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span className="metric-lbl">Delay Reduction</span>
             <TrendingUp className="w-4 h-4" style={{ color: '#4ade80' }} />
@@ -138,12 +143,12 @@ export const ImpactDashboard: React.FC<ImpactDashboardProps> = ({ metricsData })
           <span className="metric-val" style={{ color: '#4ade80' }}>
             -{improvements.delay_reduction_pct}%
           </span>
-          <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+          <span style={{ fontSize: '0.74rem', color: '#94a3b8', fontWeight: 500 }}>
             {ai.avg_delay_s}s vs {base.avg_delay_s}s baseline
           </span>
         </div>
 
-        <div className="metric-card" style={{ background: 'rgba(56, 189, 248, 0.06)', border: '1px solid rgba(56, 189, 248, 0.25)' }}>
+        <div className="metric-card" style={{ background: 'rgba(56, 189, 248, 0.08)', border: '1px solid rgba(56, 189, 248, 0.3)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span className="metric-lbl">Queue Reduction</span>
             <Activity className="w-4 h-4" style={{ color: '#38bdf8' }} />
@@ -151,25 +156,25 @@ export const ImpactDashboard: React.FC<ImpactDashboardProps> = ({ metricsData })
           <span className="metric-val" style={{ color: 'var(--accent-cyan)' }}>
             -{improvements.queue_reduction_pct}%
           </span>
-          <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+          <span style={{ fontSize: '0.74rem', color: '#94a3b8', fontWeight: 500 }}>
             {ai.avg_queue_pcu} vs {base.avg_queue_pcu} PCU Queue
           </span>
         </div>
 
-        <div className="metric-card" style={{ background: 'rgba(168, 85, 247, 0.06)', border: '1px solid rgba(168, 85, 247, 0.25)' }}>
+        <div className="metric-card" style={{ background: 'rgba(168, 85, 247, 0.08)', border: '1px solid rgba(168, 85, 247, 0.3)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span className="metric-lbl">Throughput Gain</span>
             <Zap className="w-4 h-4" style={{ color: '#c084fc' }} />
           </div>
-          <span className="metric-val" style={{ color: 'var(--accent-purple)' }}>
+          <span className="metric-val" style={{ color: 'var(--accent-purple-bright)' }}>
             +{improvements.throughput_improvement_pct}%
           </span>
-          <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+          <span style={{ fontSize: '0.74rem', color: '#94a3b8', fontWeight: 500 }}>
             {ai.throughput_veh} vs {base.throughput_veh} veh/hr
           </span>
         </div>
 
-        <div className="metric-card" style={{ background: 'rgba(239, 68, 68, 0.06)', border: '1px solid rgba(239, 68, 68, 0.25)' }}>
+        <div className="metric-card" style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span className="metric-lbl">Emergency Time Saved</span>
             <CheckCircle2 className="w-4 h-4" style={{ color: '#f87171' }} />
@@ -177,7 +182,7 @@ export const ImpactDashboard: React.FC<ImpactDashboardProps> = ({ metricsData })
           <span className="metric-val" style={{ color: '#f87171' }}>
             -{improvements.emergency_time_saved_pct}%
           </span>
-          <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+          <span style={{ fontSize: '0.74rem', color: '#94a3b8', fontWeight: 500 }}>
             {ai.emergency_travel_time_s}s vs {base.emergency_travel_time_s}s corridor
           </span>
         </div>
@@ -187,57 +192,58 @@ export const ImpactDashboard: React.FC<ImpactDashboardProps> = ({ metricsData })
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '0.75rem',
-        background: 'rgba(0, 0, 0, 0.3)',
-        borderRadius: '0.75rem',
-        padding: '0.85rem',
-        border: '1px solid rgba(255, 255, 255, 0.06)',
-        marginBottom: '1rem'
+        gap: '0.85rem',
+        background: '#ffffff',
+        borderRadius: '0.85rem',
+        padding: '0.95rem 1.15rem',
+        border: '1px solid #e2e8f0',
+        boxShadow: '0 2px 10px rgba(15, 23, 42, 0.04)',
+        marginBottom: '1.1rem'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <Leaf className="w-5 h-5" style={{ color: '#4ade80' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
+          <Leaf className="w-5 h-5" style={{ color: '#16a34a' }} />
           <div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>CO₂ Emissions Reduced</div>
-            <div style={{ fontSize: '1rem', fontWeight: 800, color: '#4ade80' }}>~{co2SavedKg} kg / hr</div>
+            <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.04em' }}>CO₂ Emissions Reduced</div>
+            <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#15803d' }}>~{co2SavedKg} kg / hr</div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <Fuel className="w-5 h-5" style={{ color: '#fbbf24' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
+          <Fuel className="w-5 h-5" style={{ color: '#d97706' }} />
           <div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Idling Fuel Saved</div>
-            <div style={{ fontSize: '1rem', fontWeight: 800, color: '#fbbf24' }}>~{fuelSavedLiters} Liters / hr</div>
+            <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.04em' }}>Idling Fuel Saved</div>
+            <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#b45309' }}>~{fuelSavedLiters} Liters / hr</div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <DollarSign className="w-5 h-5" style={{ color: '#38bdf8' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
+          <DollarSign className="w-5 h-5" style={{ color: '#0284c7' }} />
           <div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Productivity Saved</div>
-            <div style={{ fontSize: '1rem', fontWeight: 800, color: '#38bdf8' }}>~${economicSaved} / hr value</div>
+            <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.04em' }}>Productivity Saved</div>
+            <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0284c7' }}>~${economicSaved} / hr value</div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <Activity className="w-5 h-5" style={{ color: '#c084fc' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
+          <Activity className="w-5 h-5" style={{ color: '#7c3aed' }} />
           <div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Pedestrian Wait Saved</div>
-            <div style={{ fontSize: '1rem', fontWeight: 800, color: '#c084fc' }}>-{improvements.pedestrian_wait_reduction_pct}% wait time</div>
+            <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.04em' }}>Pedestrian Wait Saved</div>
+            <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#7e22ce' }}>-{improvements.pedestrian_wait_reduction_pct}% wait time</div>
           </div>
         </div>
       </div>
 
       {/* Recharts Side-by-Side Dual Bar Comparison Chart */}
-      <div style={{ height: '260px', width: '100%' }}>
+      <div style={{ height: '270px', width: '100%' }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} margin={{ top: 10, right: 15, left: -15, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-            <XAxis dataKey="name" stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 12 }} />
-            <YAxis stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 12 }} />
-            <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }} />
-            <Legend wrapperStyle={{ paddingTop: '8px' }} />
-            <Bar dataKey="AI" fill="#38bdf8" radius={[4, 4, 0, 0]} name="Adaptive AI Controller (PPO + Shield)" />
-            <Bar dataKey="Baseline" fill="#64748b" radius={[4, 4, 0, 0]} name="Fixed-Time Baseline (Pre-timed 120s Cycle)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <XAxis dataKey="name" stroke="#64748b" tick={{ fill: '#334155', fontSize: 12, fontWeight: 700 }} />
+            <YAxis stroke="#64748b" tick={{ fill: '#334155', fontSize: 12, fontWeight: 700 }} />
+            <Tooltip contentStyle={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '10px', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', color: '#0f172a' }} />
+            <Legend wrapperStyle={{ paddingTop: '10px' }} />
+            <Bar dataKey="AI" fill="#0284c7" radius={[5, 5, 0, 0]} name="Adaptive AI Controller (PPO + Shield)" />
+            <Bar dataKey="Baseline" fill="#94a3b8" radius={[5, 5, 0, 0]} name="Fixed-Time Baseline (Pre-timed 120s Cycle)" />
           </BarChart>
         </ResponsiveContainer>
       </div>

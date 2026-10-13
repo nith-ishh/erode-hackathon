@@ -1,0 +1,4 @@
+[33m2b3371c[m Implement live step-by-step fluctuating telemetry values (JEV Imbalance, Ped Pressure, Confidence %) and distinct per-category vehicle speeds
+ frontend/src/components/JunctionVisualizer.tsx | 48 [32m++++++++++++++++[m[31m-----[m
+ simulation/state_extractor.py                  | 58 [32m++++++++++++++++[m[31m----------[m
+ 2 files changed, 74 insertions(+), 32 deletions(-)

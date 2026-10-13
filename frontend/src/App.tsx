@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Header } from './components/Header';
+import { Sidebar } from './components/Sidebar';
 import { JunctionVisualizer } from './components/JunctionVisualizer';
 import { AIControlPanel } from './components/AIControlPanel';
 import { SafetyShieldPanel } from './components/SafetyShieldPanel';
 import { ImpactDashboard } from './components/ImpactDashboard';
 import { GreenWavePanel } from './components/GreenWavePanel';
 import { DecisionAuditLog } from './components/DecisionAuditLog';
-import { Radio } from 'lucide-react';
+import { Zap, Activity, Clock, Siren } from 'lucide-react';
+
+import './App.css';
 
 export const App: React.FC = () => {
   const [scenario, setScenario] = useState<string>('normal');
@@ -14,9 +17,10 @@ export const App: React.FC = () => {
   const [emergencyActive, setEmergencyActive] = useState<boolean>(false);
   const [stateData, setStateData] = useState<any>(null);
   const [connectionMode, setConnectionMode] = useState<'ws' | 'polling' | 'connecting'>('connecting');
+  const [activeTab, setActiveTab] = useState<'all' | 'twin' | 'ai' | 'shield' | 'emergency' | 'analytics' | 'audit'>('all');
   const wsRef = useRef<WebSocket | null>(null);
 
-  // High-performance WebSocket Live Stream with REST Polling Fallback (Member 4 Lead)
+  // High-performance WebSocket Live Stream with REST Polling Fallback
   useEffect(() => {
     let pollingInterval: any = null;
 
@@ -113,47 +117,132 @@ export const App: React.FC = () => {
   };
 
   const finalPhase = stateData?.final_phase ?? 0;
+  const currentStep = stateData?.step ?? 0;
 
   return (
     <div className="dashboard-container">
-      {/* 1. Header Bar with Connection Status */}
-      <Header
-        scenario={scenario}
-        onScenarioChange={handleScenarioChange}
-        breakItActive={breakItActive}
-        onToggleBreakIt={handleToggleBreakIt}
-        emergencyActive={emergencyActive}
-        onToggleEmergency={handleToggleEmergency}
-      />
+      {/* Main Layout Container with Side Navigation */}
+      <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', width: '100%' }}>
+        {/* Sidebar Component */}
+        <Sidebar
+          activeTab={activeTab}
+          onSelectTab={setActiveTab}
+          scenario={scenario}
+          onScenarioChange={handleScenarioChange}
+          breakItActive={breakItActive}
+          onToggleBreakIt={handleToggleBreakIt}
+          emergencyActive={emergencyActive}
+          onToggleEmergency={handleToggleEmergency}
+        />
 
-      {/* Live Stream Telemetry Banner */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0.2rem 0 0.8rem 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <Radio className="w-3.5 h-3.5" style={{ color: connectionMode === 'ws' ? '#22c55e' : '#38bdf8' }} />
-          <span>Telemetry Stream: <strong style={{ color: '#fff' }}>{connectionMode === 'ws' ? 'WebSocket Real-Time (1000ms tick)' : 'HTTP REST Polling'}</strong></span>
-        </div>
-        <div>
-          Step: <strong style={{ color: '#38bdf8' }}>#{stateData?.step ?? 0}</strong> | Scenario: <strong style={{ color: '#c084fc' }}>{scenario.toUpperCase()}</strong>
+        {/* Main Dashboard Panel Workspace */}
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '1.35rem' }}>
+          {/* 1. Header Bar with Integrated Telemetry & Command Controls */}
+          <Header
+            scenario={scenario}
+            onScenarioChange={handleScenarioChange}
+            breakItActive={breakItActive}
+            onToggleBreakIt={handleToggleBreakIt}
+            emergencyActive={emergencyActive}
+            onToggleEmergency={handleToggleEmergency}
+            connectionMode={connectionMode}
+            step={currentStep}
+          />
+
+
+          {/* Executive Command KPI Overview Bar */}
+          <div className="grid-4">
+            <div className="metric-card" style={{ background: '#f0f9ff', border: '1px solid #bae6fd' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="metric-lbl">Control Mode</span>
+                <Zap className="w-4 h-4 text-cyan-600" />
+              </div>
+              <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0369a1', marginTop: '0.2rem' }}>
+                {breakItActive ? 'FAIL-SAFE FALLBACK' : 'PPO RL ADAPTIVE'}
+              </div>
+              <span style={{ fontSize: '0.72rem', color: '#475569' }}>
+                {breakItActive ? 'Sensor fault overrides RL' : 'Governed by 11 Guardrails'}
+              </span>
+            </div>
+
+            <div className="metric-card" style={{ background: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="metric-lbl">Active Signal Phase</span>
+                <Activity className="w-4 h-4 text-emerald-600" />
+              </div>
+              <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#15803d', marginTop: '0.2rem' }}>
+                Phase {finalPhase}: {finalPhase === 0 ? 'N-S Green' : finalPhase === 2 ? 'E-W Green' : 'Yellow Clearance'}
+              </div>
+              <span style={{ fontSize: '0.72rem', color: '#475569' }}>
+                Dynamic PCU Queue Optimization
+              </span>
+            </div>
+
+            <div className="metric-card" style={{ background: '#faf5ff', border: '1px solid #e9d5ff' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="metric-lbl">Average Delay Saved</span>
+                <Clock className="w-4 h-4 text-purple-600" />
+              </div>
+              <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#7e22ce', marginTop: '0.2rem' }}>
+                -86% Delay Reduction
+              </div>
+              <span style={{ fontSize: '0.72rem', color: '#475569' }}>
+                8.2s AI vs 58.4s Fixed Baseline
+              </span>
+            </div>
+
+            <div className="metric-card" style={{ background: emergencyActive ? '#fff1f2' : '#ffffff', border: emergencyActive ? '1px solid #fecdd3' : '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="metric-lbl">Ambulance Corridor</span>
+                <Siren className="w-4 h-4 text-red-600" />
+              </div>
+              <div style={{ fontSize: '1.15rem', fontWeight: 800, color: emergencyActive ? '#be123c' : '#0f172a', marginTop: '0.2rem' }}>
+                {emergencyActive ? '🚨 INSTANT GREEN PASS' : 'STANDBY (SIREN READY)'}
+              </div>
+              <span style={{ fontSize: '0.72rem', color: emergencyActive ? '#9f1239' : '#475569' }}>
+                {emergencyActive ? 'Clear corridor guaranteed' : '0s pre-emption response'}
+              </span>
+            </div>
+          </div>
+
+          {/* 2. Full-Width SUMO Digital Twin Visualizer */}
+          {(activeTab === 'all' || activeTab === 'twin') && (
+            <JunctionVisualizer
+              stateData={stateData}
+              finalPhase={finalPhase}
+              emergencyActive={emergencyActive}
+              onToggleEmergency={handleToggleEmergency}
+            />
+          )}
+          
+          {/* 3. AI Brain + Deterministic Safety Shield Grid */}
+          {(activeTab === 'all' || activeTab === 'ai' || activeTab === 'shield') && (
+            <div className="grid-2">
+              {(activeTab === 'all' || activeTab === 'ai') && (
+                <AIControlPanel stateData={stateData} />
+              )}
+              {(activeTab === 'all' || activeTab === 'ai' || activeTab === 'shield') && (
+                <SafetyShieldPanel stateData={stateData} breakItActive={breakItActive} />
+              )}
+            </div>
+          )}
+
+          {/* 4. Emergency Green Wave Corridor Panel */}
+          {(activeTab === 'all' || activeTab === 'emergency') && (
+            <GreenWavePanel emergencyData={stateData?.emergency} />
+          )}
+
+          {/* 5. Live Counterfactual Twin & Empirical Impact Dashboard */}
+          {(activeTab === 'all' || activeTab === 'analytics') && (
+            <ImpactDashboard />
+          )}
+
+          {/* 6. SQLite Decision Audit Trail & Governance Inspector */}
+          {(activeTab === 'all' || activeTab === 'audit') && (
+            <DecisionAuditLog />
+          )}
         </div>
       </div>
-
-      {/* 2. Full-Width SUMO Digital Twin High-Definition Visualizer */}
-      <JunctionVisualizer stateData={stateData} finalPhase={finalPhase} />
-      
-      {/* 3. AI Brain + Deterministic Safety Shield Grid */}
-      <div className="grid-2">
-        <AIControlPanel stateData={stateData} />
-        <SafetyShieldPanel stateData={stateData} breakItActive={breakItActive} />
-      </div>
-
-      {/* 4. Emergency Green Wave Corridor Panel */}
-      <GreenWavePanel emergencyData={stateData?.emergency} />
-
-      {/* 5. Live Counterfactual Twin & Empirical Impact Dashboard (Member 4 Lead) */}
-      <ImpactDashboard />
-
-      {/* 6. SQLite Decision Audit Trail & Governance Inspector (Member 4 Lead) */}
-      <DecisionAuditLog />
     </div>
   );
 };

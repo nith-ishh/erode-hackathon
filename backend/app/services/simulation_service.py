@@ -96,7 +96,7 @@ class SimulationService:
         if self.controller.is_connected and TRACI_AVAILABLE and traci is not None:
             raw_state = self.extractor.extract_state_traci(traci, label="service_main")
         else:
-            raw_state = self.extractor.extract_mock_state(self.step_count)
+            raw_state = self.extractor.extract_mock_state(self.step_count, scenario=self.scenario)
 
         if self.emergency_trigger:
             raw_state["emergency_present"] = True
